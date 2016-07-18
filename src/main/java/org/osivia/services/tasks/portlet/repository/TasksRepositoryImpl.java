@@ -167,22 +167,10 @@ public class TasksRepositoryImpl implements TasksRepository {
         }
 
 
-        // Target document
-        if (StringUtils.contains(display, "${document}")) {
-            // Target path
-            String path = globalVariables.getString("documentPath");
-            // Target document context
-            NuxeoDocumentContext documentContext = nuxeoController.getDocumentContext(path);
-            // Target document
-            Document target = documentContext.getDoc();
-
-            // URL
-            String url = nuxeoController.getLink(target).getUrl();
-            
-            // Link
-            Element link = DOM4JUtils.generateLinkElement(url, null, null, "no-ajax-link", target.getTitle());
-            
-            display = StringUtils.replace(display, "${document}", DOM4JUtils.write(link));
+        // workspaceTitle
+        if (StringUtils.contains(display, "${workspaceTitle}")) {
+            String workspaceTitle = globalVariables.getString("workspaceTitle");
+            display = StringUtils.replace(display, "${workspaceTitle}", workspaceTitle);
         }
 
         return display;
@@ -199,12 +187,13 @@ public class TasksRepositoryImpl implements TasksRepository {
 
         // Task document
         Document task = nuxeoController.getDocumentContext(path).getDoc();
+        task = ((Documents) nuxeoController.executeNuxeoCommand(new RetrieveActiviteByIdCommand(task.getId()))).get(0);
 
         // Task variables
-        PropertyMap taskVariables = task.getProperties().getMap("nt:task_variables");
+        PropertyMap variableMap = task.getProperties().getMap("nt:task_variables");
 
         // Action identifier
-        String actionId = taskVariables.getString(actionType.getActionReference());
+        String actionId =variableMap.getString(actionType.getActionReference());
         
         try {
             this.formsService.proceed(portalControllerContext, task, actionId, null);
