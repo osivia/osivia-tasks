@@ -12,7 +12,7 @@ import fr.toutatice.portail.cms.nuxeo.api.INuxeoCommand;
 
 /**
  * Get tasks command.
- * 
+ *
  * @author Cédric Krommenhoek
  * @see INuxeoCommand
  */
@@ -28,7 +28,7 @@ public class GetTasksCommand implements INuxeoCommand {
 
     /**
      * Constructor.
-     * 
+     *
      * @param user user UID
      */
     public GetTasksCommand(String user) {
@@ -38,8 +38,9 @@ public class GetTasksCommand implements INuxeoCommand {
 
     /**
      * Constructor.
-     * 
+     *
      * @param user user UID
+     * @param path task path
      */
     public GetTasksCommand(String user, String path) {
         super();
@@ -56,16 +57,12 @@ public class GetTasksCommand implements INuxeoCommand {
         // Query
         StringBuilder query = new StringBuilder();
         query.append("SELECT * FROM Document ");
-        query.append("WHERE ecm:primaryType = 'TaskDoc' AND ecm:currentLifeCycleState != 'ended' ");
-
-        if (StringUtils.isEmpty(path)) {
-            query.append("AND nt:task_variables.notifiable = 'true' ");
-            query.append("AND nt:actors = '").append(this.user).append("' ");
-        } else {
+        query.append("WHERE ecm:primaryType = 'TaskDoc' ");
+        query.append("AND nt:task_variables.notifiable = 'true' ");
+        query.append("AND nt:actors = '").append(this.user).append("' ");
+        if (StringUtils.isNotEmpty(this.path)) {
             query.append("AND ecm:path = '").append(this.path).append("' ");
         }
-        
-        
 
         // Operation request
         OperationRequest request = nuxeoSession.newRequest("Document.QueryES");
@@ -85,6 +82,10 @@ public class GetTasksCommand implements INuxeoCommand {
         builder.append(this.getClass().getName());
         builder.append("/");
         builder.append(this.user);
+        if (StringUtils.isNotEmpty(this.path)) {
+            builder.append("/");
+            builder.append(this.path);
+        }
         return builder.toString();
     }
 

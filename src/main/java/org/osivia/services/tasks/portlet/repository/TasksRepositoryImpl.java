@@ -167,10 +167,22 @@ public class TasksRepositoryImpl implements TasksRepository {
         }
 
 
-        // workspaceTitle
-        if (StringUtils.contains(display, "${workspaceTitle}")) {
-            String workspaceTitle = globalVariables.getString("workspaceTitle");
-            display = StringUtils.replace(display, "${workspaceTitle}", workspaceTitle);
+        // Target document
+        if (StringUtils.contains(display, "${document}")) {
+            // Target path
+            String path = globalVariables.getString("documentPath");
+            // Target document context
+            NuxeoDocumentContext documentContext = nuxeoController.getDocumentContext(path);
+            // Target document
+            Document target = documentContext.getDoc();
+
+            // URL
+            String url = nuxeoController.getLink(target).getUrl();
+            
+            // Link
+            Element link = DOM4JUtils.generateLinkElement(url, null, null, "no-ajax-link", target.getTitle());
+            
+            display = StringUtils.replace(display, "${document}", DOM4JUtils.write(link));
         }
 
         return display;
@@ -185,15 +197,26 @@ public class TasksRepositoryImpl implements TasksRepository {
         // Nuxeo controller
         NuxeoController nuxeoController = new NuxeoController(portalControllerContext);
 
+        // Principal
+        Principal principal = portalControllerContext.getRequest().getUserPrincipal();
+
+        // User name
+        String user = principal.getName();
+
+        // Nuxeo command
+        INuxeoCommand command = this.applicationContext.getBean(GetTasksCommand.class, user, path);
+
+        // Nuxeo documents
+        Documents documents = (Documents) nuxeoController.executeNuxeoCommand(command);
+
         // Task document
-        Document task = nuxeoController.getDocumentContext(path).getDoc();
-        task = ((Documents) nuxeoController.executeNuxeoCommand(new RetrieveActiviteByIdCommand(task.getId()))).get(0);
+        Document task = documents.get(0);
 
         // Task variables
-        PropertyMap variableMap = task.getProperties().getMap("nt:task_variables");
+        PropertyMap taskVariables = task.getProperties().getMap("nt:task_variables");
 
         // Action identifier
-        String actionId =variableMap.getString(actionType.getActionReference());
+        String actionId = taskVariables.getString(actionType.getActionReference());
         
         try {
             this.formsService.proceed(portalControllerContext, task, actionId, null);
