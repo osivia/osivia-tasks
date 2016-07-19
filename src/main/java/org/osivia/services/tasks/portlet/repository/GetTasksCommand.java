@@ -57,7 +57,8 @@ public class GetTasksCommand implements INuxeoCommand {
         // Query
         StringBuilder query = new StringBuilder();
         query.append("SELECT * FROM Document ");
-        query.append("WHERE ecm:primaryType = 'TaskDoc' AND ecm:currentLifeCycleState != 'ended' ");
+        query.append("WHERE ecm:primaryType = 'TaskDoc' ");
+        query.append("AND ecm:currentLifeCycleState <> 'ended' ");
         query.append("AND nt:task_variables.notifiable = 'true' ");
         query.append("AND nt:actors = '").append(this.user).append("' ");
         if (StringUtils.isNotEmpty(this.path)) {
