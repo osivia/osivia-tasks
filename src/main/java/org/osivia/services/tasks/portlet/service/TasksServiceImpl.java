@@ -2,6 +2,7 @@ package org.osivia.services.tasks.portlet.service;
 
 import java.util.List;
 
+import javax.portlet.ActionResponse;
 import javax.portlet.PortletException;
 
 import org.osivia.portal.api.context.PortalControllerContext;
@@ -59,8 +60,8 @@ public class TasksServiceImpl implements TasksService {
      * {@inheritDoc}
      */
     @Override
-    public void acceptTask(PortalControllerContext portalControllerContext, String path) throws PortletException {
-        this.repository.updateTask(portalControllerContext, path, TaskActionType.ACCEPT);
+    public void acceptTask(PortalControllerContext portalControllerContext, Tasks tasks, int index) throws PortletException {
+        this.updateTask(portalControllerContext, tasks, index, TaskActionType.ACCEPT);
     }
 
 
@@ -68,8 +69,41 @@ public class TasksServiceImpl implements TasksService {
      * {@inheritDoc}
      */
     @Override
-    public void rejectTask(PortalControllerContext portalControllerContext, String path) throws PortletException {
-        this.repository.updateTask(portalControllerContext, path, TaskActionType.REJECT);
+    public void rejectTask(PortalControllerContext portalControllerContext, Tasks tasks, int index) throws PortletException {
+        this.updateTask(portalControllerContext, tasks, index, TaskActionType.REJECT);
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void closeTask(PortalControllerContext portalControllerContext, Tasks tasks, int index) throws PortletException {
+        this.updateTask(portalControllerContext, tasks, index, TaskActionType.CLOSE);
+    }
+
+
+    /**
+     * Update task.
+     * 
+     * @param portalControllerContext portal controller context
+     * @param tasks tasks
+     * @param index task index
+     * @param actionType action type
+     * @throws PortletException
+     */
+    private void updateTask(PortalControllerContext portalControllerContext, Tasks tasks, int index, TaskActionType actionType) throws PortletException {
+        Task task = tasks.getTasks().get(index);
+        this.repository.updateTask(portalControllerContext, tasks, task, actionType);
+
+        // Update model
+        List<Task> updatedTasks = this.repository.getTasks(portalControllerContext);
+        tasks.setTasks(updatedTasks);
+
+        if (portalControllerContext.getResponse() instanceof ActionResponse) {
+            ActionResponse response = (ActionResponse) portalControllerContext.getResponse();
+            response.setRenderParameter("count", String.valueOf(updatedTasks.size()));
+        }
     }
 
 }

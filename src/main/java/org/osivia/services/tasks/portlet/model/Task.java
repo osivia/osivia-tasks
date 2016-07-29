@@ -24,6 +24,10 @@ public class Task {
     private Date date;
     /** Acknowledgeable indicator. */
     private boolean acknowledgeable;
+    /** Closeable indicator. */
+    private boolean closeable;
+    /** Message. */
+    private String message;
 
 
     /**
@@ -104,6 +108,42 @@ public class Task {
      */
     public void setAcknowledgeable(boolean acknowledgeable) {
         this.acknowledgeable = acknowledgeable;
+    }
+
+    /**
+     * Getter for closeable.
+     * 
+     * @return the closeable
+     */
+    public boolean isCloseable() {
+        return closeable;
+    }
+
+    /**
+     * Setter for closeable.
+     * 
+     * @param closeable the closeable to set
+     */
+    public void setCloseable(boolean closeable) {
+        this.closeable = closeable;
+    }
+
+    /**
+     * Getter for message.
+     * 
+     * @return the message
+     */
+    public String getMessage() {
+        return message;
+    }
+
+    /**
+     * Setter for message.
+     * 
+     * @param message the message to set
+     */
+    public void setMessage(String message) {
+        this.message = message;
     }
 
 }

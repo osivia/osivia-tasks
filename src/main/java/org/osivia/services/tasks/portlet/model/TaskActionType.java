@@ -1,7 +1,5 @@
 package org.osivia.services.tasks.portlet.model;
 
-import org.apache.commons.lang.StringUtils;
-
 /**
  * Task action types enumeration.
  * 
@@ -12,13 +10,13 @@ public enum TaskActionType {
     /** Accept. */
     ACCEPT("actionIdYes"),
     /** Reject. */
-    REJECT("actionIdNo");
+    REJECT("actionIdNo"),
+    /** Close. */
+    CLOSE("actionIdClosable");
 
 
     /** Action reference variable name. */
     private final String actionReference;
-    /** Internationalization key. */
-    private final String key;
 
 
     /**
@@ -28,7 +26,6 @@ public enum TaskActionType {
      */
     private TaskActionType(String actionReference) {
         this.actionReference = actionReference;
-        this.key = "TASK_ACTION_TYPE_" + StringUtils.upperCase(this.name());
     }
 
 
@@ -41,13 +38,4 @@ public enum TaskActionType {
         return actionReference;
     }
 
-    /**
-     * Getter for key.
-     * 
-     * @return the key
-     */
-    public String getKey() {
-        return key;
-    }
-    
 }

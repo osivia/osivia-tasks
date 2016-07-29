@@ -26,19 +26,32 @@ public interface TasksService {
      * Accept task.
      * 
      * @param portalControllerContext portal controller context
-     * @param path task document path
+     * @param tasks tasks
+     * @param index task index
      * @throws PortletException
      */
-    void acceptTask(PortalControllerContext portalControllerContext, String path) throws PortletException;
+    void acceptTask(PortalControllerContext portalControllerContext, Tasks tasks, int index) throws PortletException;
 
 
     /**
      * Reject task.
      * 
      * @param portalControllerContext portal controller context
-     * @param path task document path
+     * @param tasks tasks
+     * @param index task index
      * @throws PortletException
      */
-    void rejectTask(PortalControllerContext portalControllerContext, String path) throws PortletException;
+    void rejectTask(PortalControllerContext portalControllerContext, Tasks tasks, int index) throws PortletException;
+
+
+    /**
+     * Close task.
+     * 
+     * @param portalControllerContext portal controller context
+     * @param tasks tasks
+     * @param index task index
+     * @throws PortletException
+     */
+    void closeTask(PortalControllerContext portalControllerContext, Tasks tasks, int index) throws PortletException;
 
 }

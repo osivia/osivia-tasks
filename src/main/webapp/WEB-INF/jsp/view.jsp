@@ -10,7 +10,7 @@
 <portlet:defineObjects />
 
 
-<ul class="list-unstyled">
+<ul class="tasks list-unstyled" data-reload="${reload}" data-reload-url="${reloadUrl}" data-tasks-count="${tasksCount}">
     <c:forEach var="task" items="${tasks.tasks}" varStatus="status">
         <li>
             <!-- Horizontal row -->
@@ -18,39 +18,122 @@
                 <hr>
             </c:if>
             
-            <p class="text-muted">
-                <small><fmt:formatDate value="${task.date}" type="date" dateStyle="long" /></small>
-            </p>
-            
-            <div class="row">
-                <div class="col-xs-8 col-sm-10">
-                    <div>${task.display}</div>
-                </div>
+            <c:choose>
+                <c:when test="${empty task.message}">
+                    <div>
+                        <small class="text-muted"><fmt:formatDate value="${task.date}" type="date" dateStyle="long" /></small>
+                    </div>
+                    
+                    <c:choose>
+                        <c:when test="${task.acknowledgeable and task.closeable}">
+                            <!-- Acknowledgeable AND closeable -->
+                            <div class="row">
+                                <div class="col-xs-6 col-sm-9">
+                                    <div>${task.display}</div>
+                                </div>
+                                
+                                <div class="col-xs-6 col-sm-3">                        
+                                    <div class="btn-group btn-group-sm pull-right">
+                                        <!-- Accept -->
+                                        <portlet:actionURL name="accept" var="url">
+                                            <portlet:param name="index" value="${status.index}" />
+                                        </portlet:actionURL>
+                                        
+                                        <a href="${url}" class="btn btn-link">
+                                            <i class="glyphicons glyphicons-ok"></i>
+                                            <span class="sr-only"><op:translate key="ACCEPT" /></span>
+                                        </a>
+                                        
+                                        <!-- Reject -->
+                                        <portlet:actionURL name="reject" var="url">
+                                            <portlet:param name="index" value="${status.index}" />
+                                        </portlet:actionURL>
+                                        
+                                        <a href="${url}" class="btn btn-link">
+                                            <i class="glyphicons glyphicons-remove"></i>
+                                            <span class="sr-only"><op:translate key="REJECT" /></span>
+                                        </a>
+                                        
+                                        <!-- Close -->
+                                        <portlet:actionURL name="close" var="url">
+                                            <portlet:param name="index" value="${status.index}" />
+                                        </portlet:actionURL>
+                                        
+                                        <a href="${url}" class="btn btn-link">
+                                            <i class="glyphicons glyphicons-remove"></i>
+                                            <span class="sr-only"><op:translate key="CLOSE" /></span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </c:when>
+                    
+                        <c:when test="${task.acknowledgeable}">
+                            <!-- Acknowledgeable -->
+                            <div class="row">
+                                <div class="col-xs-8 col-sm-10">
+                                    <div>${task.display}</div>
+                                </div>
+                                
+                                <div class="col-xs-4 col-sm-2">                        
+                                    <div class="btn-group btn-group-sm pull-right">
+                                        <!-- Accept -->
+                                        <portlet:actionURL name="accept" var="url">
+                                            <portlet:param name="index" value="${status.index}" />
+                                        </portlet:actionURL>
+                                        
+                                        <a href="${url}" class="btn btn-link">
+                                            <i class="glyphicons glyphicons-ok"></i>
+                                            <span class="sr-only"><op:translate key="ACCEPT" /></span>
+                                        </a>
+                                        
+                                        <!-- Reject -->
+                                        <portlet:actionURL name="reject" var="url">
+                                            <portlet:param name="index" value="${status.index}" />
+                                        </portlet:actionURL>
+                                        
+                                        <a href="${url}" class="btn btn-link">
+                                            <i class="glyphicons glyphicons-remove"></i>
+                                            <span class="sr-only"><op:translate key="REJECT" /></span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </c:when>
+                        
+                        <c:when test="${task.closeable}">
+                            <!-- Closeable -->
+                            <div class="row">
+                                <div class="col-xs-10 col-sm-11">
+                                    <div>${task.display}</div>
+                                </div>
+                                
+                                <div class="col-xs-2 col-sm-1">                        
+                                    <div class="btn-group btn-group-sm pull-right">
+                                        <!-- Close -->
+                                        <portlet:actionURL name="close" var="url">
+                                            <portlet:param name="index" value="${status.index}" />
+                                        </portlet:actionURL>
+                                        
+                                        <a href="${url}" class="btn btn-link">
+                                            <i class="glyphicons glyphicons-remove"></i>
+                                            <span class="sr-only"><op:translate key="CLOSE" /></span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </c:when>
+                        
+                        <c:otherwise>
+                            <div>${task.display}</div>
+                        </c:otherwise>
+                    </c:choose>
+                </c:when>
                 
-                <div class="col-xs-4 col-sm-2">
-                    <c:if test="${task.acknowledgeable}">
-                        <div class="btn-group btn-group-sm pull-right">
-                            <!-- Accept -->
-                            <portlet:actionURL name="accept" var="url">
-                                <portlet:param name="path" value="${task.document.path}" />
-                            </portlet:actionURL>
-                            <a href="${url}" class="btn btn-default">
-                                <i class="glyphicons glyphicons-ok"></i>
-                                <span class="sr-only"><op:translate key="ACCEPT" /></span>
-                            </a>
-                            
-                            <!-- Reject -->
-                            <portlet:actionURL name="reject" var="url">
-                                <portlet:param name="path" value="${task.document.path}" />
-                            </portlet:actionURL>
-                            <a href="${url}" class="btn btn-default">
-                                <i class="glyphicons glyphicons-remove"></i>
-                                <span class="sr-only"><op:translate key="REJECT" /></span>
-                            </a>
-                        </div>
-                    </c:if>
-                </div>
-            </div>
+                <c:otherwise>
+                    <div><c:out value="${task.message}" escapeXml="false"></c:out></div>
+                </c:otherwise>
+            </c:choose>
         </li>
     </c:forEach>
     

@@ -2,7 +2,10 @@ package org.osivia.services.tasks.portlet.repository;
 
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.portlet.PortletException;
 
@@ -14,19 +17,17 @@ import org.nuxeo.ecm.automation.client.model.Documents;
 import org.nuxeo.ecm.automation.client.model.PropertyMap;
 import org.osivia.portal.api.PortalException;
 import org.osivia.portal.api.context.PortalControllerContext;
-import org.osivia.portal.api.directory.v2.model.Person;
 import org.osivia.portal.api.directory.v2.service.PersonService;
 import org.osivia.portal.api.html.DOM4JUtils;
-import org.osivia.portal.api.html.HTMLConstants;
 import org.osivia.services.tasks.portlet.model.Task;
 import org.osivia.services.tasks.portlet.model.TaskActionType;
+import org.osivia.services.tasks.portlet.model.Tasks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
 
 import fr.toutatice.portail.cms.nuxeo.api.INuxeoCommand;
 import fr.toutatice.portail.cms.nuxeo.api.NuxeoController;
-import fr.toutatice.portail.cms.nuxeo.api.cms.NuxeoDocumentContext;
 import fr.toutatice.portail.cms.nuxeo.api.forms.IFormsService;
 import fr.toutatice.portail.cms.nuxeo.api.services.tag.INuxeoTagService;
 
@@ -102,6 +103,7 @@ public class TasksRepositoryImpl implements TasksRepository {
                 task.setDisplay(this.getTaskDisplay(portalControllerContext, document));
                 task.setDate(document.getDate("dc:created"));
                 task.setAcknowledgeable(BooleanUtils.isTrue(taskVariables.getBoolean("acquitable")));
+                task.setCloseable(BooleanUtils.isTrue(taskVariables.getBoolean("closable")));
 
                 tasks.add(task);
             }
@@ -116,76 +118,43 @@ public class TasksRepositoryImpl implements TasksRepository {
      * 
      * @param portalControllerContext portal controller context
      * @param task task Nuxeo document
-     * @return display
+     * @return task display
+     * @throws PortletException
      */
-    private String getTaskDisplay(PortalControllerContext portalControllerContext, Document task) {
-        // Nuxeo controller
-        NuxeoController nuxeoController = new NuxeoController(portalControllerContext);
-
+    private String getTaskDisplay(PortalControllerContext portalControllerContext, Document task) throws PortletException {
         // Procedure instance properties
         PropertyMap instanceProperties = task.getProperties().getMap("nt:pi");
-
-        // Task variables
-        PropertyMap taskVariables = task.getProperties().getMap("nt:task_variables");
 
         // Global variables
         PropertyMap globalVariables = instanceProperties.getMap("pi:globalVariablesValues");
 
+        // Task variables
+        PropertyMap taskVariables = task.getProperties().getMap("nt:task_variables");
 
-        // Display
-        String display = taskVariables.getString("stringMsg");
+
+        // Expression
+        String expression = taskVariables.getString("stringMsg");
+
+        // Variables
+        Map<String, String> variables = new HashMap<>(globalVariables.size() + taskVariables.size());
+        for (Entry<String, Object> entry : globalVariables.getMap().entrySet()) {
+            variables.put(entry.getKey(), String.valueOf(entry.getValue()));
+        }
+        for (Entry<String, Object> entry : taskVariables.getMap().entrySet()) {
+            variables.put(entry.getKey(), String.valueOf(entry.getValue()));
+        }
+        variables.put("initiator", task.getString("nt:initiator"));
 
 
-        // Initiator
-        if (StringUtils.contains(display, "${initiator}")) {
-            String initiatorName = task.getString("nt:initiator");
-            Person initiator = this.personService.getPerson(initiatorName);
-
-            // Container
-            Element container;
-
-            if (initiator == null) {
-                container = DOM4JUtils.generateElement(HTMLConstants.SPAN, null, initiatorName, "glyphicons glyphicons-user", null);
-            } else {
-                container = DOM4JUtils.generateElement(HTMLConstants.SPAN, null, null);
-                
-                // Avatar
-                Element avatar = DOM4JUtils.generateElement(HTMLConstants.IMG, "avatar", null);
-                DOM4JUtils.addAttribute(avatar, HTMLConstants.SRC, initiator.getAvatar().getUrl());
-                DOM4JUtils.addAttribute(avatar, HTMLConstants.ALT, StringUtils.EMPTY);
-                container.add(avatar);
-                
-                // URL
-                String url = this.tagService.getUserProfileLink(nuxeoController, initiatorName, initiator.getDisplayName()).getUrl();
-                
-                // Display name
-                Element displayName = DOM4JUtils.generateLinkElement(url, null, null, "no-ajax-link", initiator.getDisplayName());
-                container.add(displayName);
-            }
-
-            display = StringUtils.replace(display, "${initiator}", DOM4JUtils.write(container));
+        // Tranformed expression
+        String transformedExpression;
+        try {
+            transformedExpression = this.formsService.transform(portalControllerContext, expression, variables);
+        } catch (PortalException e) {
+            throw new PortletException(e);
         }
 
-
-        // Target document
-        if (StringUtils.contains(display, "${document}")) {
-            // Target path
-            String path = globalVariables.getString("documentPath");
-            // Target document context
-            NuxeoDocumentContext documentContext = nuxeoController.getDocumentContext(path);
-            // Target document
-            Document target = documentContext.getDoc();
-
-            // URL
-            String url = nuxeoController.getLink(target).getUrl();
-            
-            // Link
-            Element link = DOM4JUtils.generateLinkElement(url, null, null, "no-ajax-link", target.getTitle());
-            
-            display = StringUtils.replace(display, "${document}", DOM4JUtils.write(link));
-        }
-
-        return display;
+        return transformedExpression;
     }
 
 
@@ -193,7 +162,7 @@ public class TasksRepositoryImpl implements TasksRepository {
      * {@inheritDoc}
      */
     @Override
-    public void updateTask(PortalControllerContext portalControllerContext, String path, TaskActionType actionType) throws PortletException {
+    public void updateTask(PortalControllerContext portalControllerContext, Tasks tasks, Task task, TaskActionType actionType) throws PortletException {
         // Nuxeo controller
         NuxeoController nuxeoController = new NuxeoController(portalControllerContext);
 
@@ -204,25 +173,32 @@ public class TasksRepositoryImpl implements TasksRepository {
         String user = principal.getName();
 
         // Nuxeo command
+        String path = task.getDocument().getPath();
         INuxeoCommand command = this.applicationContext.getBean(GetTasksCommand.class, user, path);
 
         // Nuxeo documents
         Documents documents = (Documents) nuxeoController.executeNuxeoCommand(command);
 
         // Task document
-        Document task = documents.get(0);
+        Document document = documents.get(0);
 
         // Task variables
-        PropertyMap taskVariables = task.getProperties().getMap("nt:task_variables");
+        PropertyMap taskVariables = document.getProperties().getMap("nt:task_variables");
 
         // Action identifier
         String actionId = taskVariables.getString(actionType.getActionReference());
         
         try {
-            this.formsService.proceed(portalControllerContext, task, actionId, null);
+            this.formsService.proceed(portalControllerContext, document, actionId, null);
         } catch (PortalException e) {
             throw new PortletException(e);
         }
+    }
+
+
+    public static String getUserLink(String user) {
+        Element link = DOM4JUtils.generateLinkElement("#", null, null, "no-ajax-link", StringUtils.capitalize(user));
+        return DOM4JUtils.write(link);
     }
 
 }

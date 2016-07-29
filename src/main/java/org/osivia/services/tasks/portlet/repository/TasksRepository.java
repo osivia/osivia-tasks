@@ -7,6 +7,7 @@ import javax.portlet.PortletException;
 import org.osivia.portal.api.context.PortalControllerContext;
 import org.osivia.services.tasks.portlet.model.Task;
 import org.osivia.services.tasks.portlet.model.TaskActionType;
+import org.osivia.services.tasks.portlet.model.Tasks;
 
 /**
  * Tasks repository interface.
@@ -29,10 +30,11 @@ public interface TasksRepository {
      * Update task.
      * 
      * @param portalControllerContext portal controller context
-     * @param path task document path
+     * @param tasks tasks
+     * @param task task
      * @param actionType action type
      * @throws PortletException
      */
-    void updateTask(PortalControllerContext portalControllerContext, String path, TaskActionType actionType) throws PortletException;
+    void updateTask(PortalControllerContext portalControllerContext, Tasks tasks, Task task, TaskActionType actionType) throws PortletException;
 
 }

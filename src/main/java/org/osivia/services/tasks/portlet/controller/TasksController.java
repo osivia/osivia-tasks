@@ -11,6 +11,8 @@ import javax.portlet.PortletResponse;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.osivia.portal.api.context.PortalControllerContext;
 import org.osivia.services.tasks.portlet.model.Tasks;
 import org.osivia.services.tasks.portlet.service.TasksService;
@@ -25,6 +27,7 @@ import org.springframework.web.portlet.context.PortletConfigAware;
 import org.springframework.web.portlet.context.PortletContextAware;
 
 import fr.toutatice.portail.cms.nuxeo.api.CMSPortlet;
+import fr.toutatice.portail.cms.nuxeo.api.services.NuxeoConnectionProperties;
 
 /**
  * Tasks portlet controller.
@@ -72,10 +75,19 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
      * 
      * @param request render request
      * @param response render response
+     * @param reload reload indicator request parameter
+     * @param count tasks count request parameter
      * @return view path
      */
     @RenderMapping
-    public String view(RenderRequest request, RenderResponse response) {
+    public String view(RenderRequest request, RenderResponse response, @RequestParam(name = "reload", required = false) String reload,
+            @RequestParam(name = "count", required = false) String count) {
+        request.setAttribute("reload", BooleanUtils.toBoolean(reload));
+
+        if (count != null) {
+            request.setAttribute("tasksCount", count);
+        }
+
         return "view";
     }
 
@@ -85,15 +97,17 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
      * 
      * @param request action request
      * @param response action response
-     * @param path task document path model attribute
+     * @param tasks tasks model attribute
+     * @param index task index request parameter
      * @throws PortletException
      */
     @ActionMapping("accept")
-    public void accept(ActionRequest request, ActionResponse response, @RequestParam String path) throws PortletException {
+    public void accept(ActionRequest request, ActionResponse response, @ModelAttribute("tasks") Tasks tasks, @RequestParam String index)
+            throws PortletException {
         // Portal controller context
         PortalControllerContext portalControllerContext = new PortalControllerContext(portletContext, request, response);
 
-        this.service.acceptTask(portalControllerContext, path);
+        this.service.acceptTask(portalControllerContext, tasks, NumberUtils.toInt(index));
     }
 
 
@@ -102,15 +116,36 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
      * 
      * @param request action request
      * @param response action response
-     * @param path task document path model attribute
+     * @param tasks tasks model attribute
+     * @param index task index request parameter
      * @throws PortletException
      */
     @ActionMapping("reject")
-    public void reject(ActionRequest request, ActionResponse response, @RequestParam String path) throws PortletException {
+    public void reject(ActionRequest request, ActionResponse response, @ModelAttribute("tasks") Tasks tasks, @RequestParam String index)
+            throws PortletException {
         // Portal controller context
         PortalControllerContext portalControllerContext = new PortalControllerContext(portletContext, request, response);
 
-        this.service.rejectTask(portalControllerContext, path);
+        this.service.rejectTask(portalControllerContext, tasks, NumberUtils.toInt(index));
+    }
+
+
+    /**
+     * Close action mapping.
+     * 
+     * @param request action request
+     * @param response action response
+     * @param tasks tasks model attribute
+     * @param index task index request parameter
+     * @throws PortletException
+     */
+    @ActionMapping("close")
+    public void close(ActionRequest request, ActionResponse response, @ModelAttribute("tasks") Tasks tasks, @RequestParam String index)
+            throws PortletException {
+        // Portal controller context
+        PortalControllerContext portalControllerContext = new PortalControllerContext(portletContext, request, response);
+
+        this.service.closeTask(portalControllerContext, tasks, NumberUtils.toInt(index));
     }
 
 
@@ -128,6 +163,19 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
         PortalControllerContext portalControllerContext = new PortalControllerContext(portletContext, request, response);
         
         return this.service.getTasks(portalControllerContext);
+    }
+
+
+    /**
+     * Get reload URL model attribute.
+     * 
+     * @param request portlet request
+     * @param response portlet response
+     * @return URL
+     */
+    @ModelAttribute("reloadUrl")
+    public String getReloadUrl(PortletRequest request, PortletResponse response) {
+        return NuxeoConnectionProperties.getPublicBaseUri() + "/logout";
     }
 
 

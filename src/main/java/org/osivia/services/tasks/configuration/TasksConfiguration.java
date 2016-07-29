@@ -13,7 +13,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
 import fr.toutatice.portail.cms.nuxeo.api.forms.IFormsService;
-import fr.toutatice.portail.cms.nuxeo.api.services.INuxeoService;
+import fr.toutatice.portail.cms.nuxeo.api.services.NuxeoServiceFactory;
 import fr.toutatice.portail.cms.nuxeo.api.services.tag.INuxeoTagService;
 
 /**
@@ -74,37 +74,24 @@ public class TasksConfiguration {
 
 
     /**
-     * Get Nuxeo service.
-     * 
-     * @return Nuxeo service
-     */
-    @Bean
-    public INuxeoService getNuxeoService() {
-        return Locator.findMBean(INuxeoService.class, INuxeoService.MBEAN_NAME);
-    }
-
-
-    /**
      * Get forms service.
      * 
-     * @param nuxeoService Nuxeo service
      * @return forms service
      */
     @Bean
-    public IFormsService getFormsService(INuxeoService nuxeoService) {
-        return nuxeoService.getFormsService();
+    public IFormsService getFormsService() {
+        return NuxeoServiceFactory.getFormsService();
     }
 
 
     /**
      * Get tag service.
      * 
-     * @param nuxeoService Nuxeo service
      * @return tag service
      */
     @Bean
-    public INuxeoTagService getTagService(INuxeoService nuxeoService) {
-        return nuxeoService.getTagService();
+    public INuxeoTagService getTagService() {
+        return NuxeoServiceFactory.getTagService();
     }
 
 
