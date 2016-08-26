@@ -14,7 +14,7 @@ import org.springframework.web.servlet.view.JstlView;
 
 import fr.toutatice.portail.cms.nuxeo.api.forms.IFormsService;
 import fr.toutatice.portail.cms.nuxeo.api.services.NuxeoServiceFactory;
-import fr.toutatice.portail.cms.nuxeo.api.services.tag.INuxeoTagService;
+//import fr.toutatice.portail.cms.nuxeo.api.services.tag.INuxeoTagService;
 
 /**
  * Tasks portlet configuration.
@@ -89,10 +89,10 @@ public class TasksConfiguration {
      * 
      * @return tag service
      */
-    @Bean
-    public INuxeoTagService getTagService() {
-        return NuxeoServiceFactory.getTagService();
-    }
+//    @Bean
+//    public INuxeoTagService getTagService() {
+//        return NuxeoServiceFactory.getTagService();
+//    }
 
 
     /**

@@ -29,7 +29,7 @@ import org.springframework.stereotype.Repository;
 import fr.toutatice.portail.cms.nuxeo.api.INuxeoCommand;
 import fr.toutatice.portail.cms.nuxeo.api.NuxeoController;
 import fr.toutatice.portail.cms.nuxeo.api.forms.IFormsService;
-import fr.toutatice.portail.cms.nuxeo.api.services.tag.INuxeoTagService;
+//import fr.toutatice.portail.cms.nuxeo.api.services.tag.INuxeoTagService;
 
 /**
  * Tasks repository implementation.
@@ -52,9 +52,9 @@ public class TasksRepositoryImpl implements TasksRepository {
     @Autowired
     private IFormsService formsService;
 
-    /** Tag service. */
-    @Autowired
-    private INuxeoTagService tagService;
+//    /** Tag service. */
+//    @Autowired
+//    private INuxeoTagService tagService;
 
 
     /**
