@@ -5,6 +5,7 @@ import org.osivia.portal.api.directory.v2.service.PersonService;
 import org.osivia.portal.api.internationalization.IBundleFactory;
 import org.osivia.portal.api.internationalization.IInternationalizationService;
 import org.osivia.portal.api.locator.Locator;
+import org.osivia.portal.api.tasks.ITasksService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -81,6 +82,17 @@ public class TasksConfiguration {
     @Bean
     public IFormsService getFormsService() {
         return NuxeoServiceFactory.getFormsService();
+    }
+
+
+    /**
+     * Get tasks service.
+     * 
+     * @return tasks service
+     */
+    @Bean
+    public ITasksService getTasksService() {
+        return Locator.findMBean(ITasksService.class, ITasksService.MBEAN_NAME);
     }
 
 

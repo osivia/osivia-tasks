@@ -2,10 +2,11 @@ package org.osivia.services.tasks.portlet.service;
 
 import java.util.List;
 
-import javax.portlet.ActionResponse;
 import javax.portlet.PortletException;
 
+import org.osivia.portal.api.PortalException;
 import org.osivia.portal.api.context.PortalControllerContext;
+import org.osivia.portal.api.tasks.ITasksService;
 import org.osivia.services.tasks.portlet.model.Task;
 import org.osivia.services.tasks.portlet.model.TaskActionType;
 import org.osivia.services.tasks.portlet.model.Tasks;
@@ -30,6 +31,10 @@ public class TasksServiceImpl implements TasksService {
     /** Tasks repository. */
     @Autowired
     private TasksRepository repository;
+
+    /** Tasks service. */
+    @Autowired
+    private ITasksService tasksService;
 
 
     /**
@@ -93,17 +98,19 @@ public class TasksServiceImpl implements TasksService {
      * @throws PortletException
      */
     private void updateTask(PortalControllerContext portalControllerContext, Tasks tasks, int index, TaskActionType actionType) throws PortletException {
+        // Task
         Task task = tasks.getTasks().get(index);
         this.repository.updateTask(portalControllerContext, tasks, task, actionType);
 
-        // Update model
-        List<Task> updatedTasks = this.repository.getTasks(portalControllerContext);
-        tasks.setTasks(updatedTasks);
-
-        if (portalControllerContext.getResponse() instanceof ActionResponse) {
-            ActionResponse response = (ActionResponse) portalControllerContext.getResponse();
-            response.setRenderParameter("count", String.valueOf(updatedTasks.size()));
+        // Reset tasks count
+        try {
+            this.tasksService.resetTasksCount(portalControllerContext);
+        } catch (PortalException e) {
+            throw new PortletException(e);
         }
+
+        // Update model
+        tasks.getTasks().remove(index);
     }
 
 }

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.portlet.bind.annotation.ActionMapping;
 import org.springframework.web.portlet.bind.annotation.RenderMapping;
 import org.springframework.web.portlet.context.PortletConfigAware;
@@ -39,6 +40,7 @@ import fr.toutatice.portail.cms.nuxeo.api.services.NuxeoConnectionProperties;
  */
 @Controller
 @RequestMapping("VIEW")
+@SessionAttributes("tasks")
 public class TasksController extends CMSPortlet implements PortletConfigAware, PortletContextAware {
 
     /** Portlet config. */
@@ -75,18 +77,16 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
      * 
      * @param request render request
      * @param response render response
+     * @param tasks tasks model attribute
      * @param reload reload indicator request parameter
-     * @param count tasks count request parameter
      * @return view path
      */
     @RenderMapping
-    public String view(RenderRequest request, RenderResponse response, @RequestParam(name = "reload", required = false) String reload,
-            @RequestParam(name = "count", required = false) String count) {
+    public String view(RenderRequest request, RenderResponse response, @ModelAttribute("tasks") Tasks tasks,
+            @RequestParam(name = "reload", required = false) String reload) {
         request.setAttribute("reload", BooleanUtils.toBoolean(reload));
 
-        if (count != null) {
-            request.setAttribute("tasksCount", count);
-        }
+        request.setAttribute("tasksCount", tasks.getTasks().size());
 
         return "view";
     }
