@@ -40,7 +40,7 @@
                                         </portlet:actionURL>
                                         
                                         <a href="${url}" class="btn btn-link">
-                                            <i class="glyphicons glyphicons-ok"></i>
+                                            <i class="glyphicons glyphicons-ok-2"></i>
                                             <span class="sr-only"><op:translate key="ACCEPT" /></span>
                                         </a>
                                         
@@ -50,7 +50,7 @@
                                         </portlet:actionURL>
                                         
                                         <a href="${url}" class="btn btn-link">
-                                            <i class="glyphicons glyphicons-remove"></i>
+                                            <i class="glyphicons glyphicons-remove-2"></i>
                                             <span class="sr-only"><op:translate key="REJECT" /></span>
                                         </a>
                                         
@@ -60,7 +60,7 @@
                                         </portlet:actionURL>
                                         
                                         <a href="${url}" class="btn btn-link">
-                                            <i class="glyphicons glyphicons-remove"></i>
+                                            <i class="glyphicons glyphicons-remove-2"></i>
                                             <span class="sr-only"><op:translate key="CLOSE" /></span>
                                         </a>
                                     </div>
@@ -83,7 +83,7 @@
                                         </portlet:actionURL>
                                         
                                         <a href="${url}" class="btn btn-link">
-                                            <i class="glyphicons glyphicons-ok"></i>
+                                            <i class="glyphicons glyphicons-ok-2"></i>
                                             <span class="sr-only"><op:translate key="ACCEPT" /></span>
                                         </a>
                                         
@@ -93,7 +93,7 @@
                                         </portlet:actionURL>
                                         
                                         <a href="${url}" class="btn btn-link">
-                                            <i class="glyphicons glyphicons-remove"></i>
+                                            <i class="glyphicons glyphicons-remove-2"></i>
                                             <span class="sr-only"><op:translate key="REJECT" /></span>
                                         </a>
                                     </div>
@@ -116,7 +116,7 @@
                                         </portlet:actionURL>
                                         
                                         <a href="${url}" class="btn btn-link">
-                                            <i class="glyphicons glyphicons-remove"></i>
+                                            <i class="glyphicons glyphicons-remove-2"></i>
                                             <span class="sr-only"><op:translate key="CLOSE" /></span>
                                         </a>
                                     </div>
