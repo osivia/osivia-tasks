@@ -3,6 +3,7 @@ package org.osivia.services.tasks.portlet.model;
 import java.util.Date;
 
 import org.nuxeo.ecm.automation.client.model.Document;
+import org.osivia.portal.api.directory.v2.model.Person;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,8 @@ public class Task {
     private Document document;
     /** Display. */
     private String display;
+    /** Initiator. */
+    private Person initiator;
     /** Date. */
     private Date date;
     /** Acknowledgeable indicator. */
@@ -72,6 +75,24 @@ public class Task {
      */
     public void setDisplay(String display) {
         this.display = display;
+    }
+
+    /**
+     * Getter for initiator.
+     * 
+     * @return the initiator
+     */
+    public Person getInitiator() {
+        return initiator;
+    }
+
+    /**
+     * Setter for initiator.
+     * 
+     * @param initiator the initiator to set
+     */
+    public void setInitiator(Person initiator) {
+        this.initiator = initiator;
     }
 
     /**

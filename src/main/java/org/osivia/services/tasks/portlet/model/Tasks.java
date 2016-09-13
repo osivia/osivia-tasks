@@ -19,6 +19,8 @@ public class Tasks {
 
     /** Tasks. */
     private List<Task> tasks;
+    /** Help content. */
+    private String help;
 
 
     /**
@@ -45,6 +47,24 @@ public class Tasks {
      */
     public void setTasks(List<Task> tasks) {
         this.tasks = tasks;
+    }
+
+    /**
+     * Getter for help.
+     * 
+     * @return the help
+     */
+    public String getHelp() {
+        return help;
+    }
+
+    /**
+     * Setter for help.
+     * 
+     * @param help the help to set
+     */
+    public void setHelp(String help) {
+        this.help = help;
     }
 
 }
