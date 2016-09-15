@@ -7,7 +7,6 @@ import javax.portlet.PortletException;
 import org.osivia.portal.api.context.PortalControllerContext;
 import org.osivia.services.tasks.portlet.model.Task;
 import org.osivia.services.tasks.portlet.model.TaskActionType;
-import org.osivia.services.tasks.portlet.model.Tasks;
 
 /**
  * Tasks repository interface.
@@ -15,6 +14,10 @@ import org.osivia.services.tasks.portlet.model.Tasks;
  * @author Cédric Krommenhoek
  */
 public interface TasksRepository {
+
+    /** Help location property name. */
+    String HELP_LOCATION_PROPERTY = "tasks.help.location";
+
 
     /**
      * Get tasks.
@@ -27,14 +30,23 @@ public interface TasksRepository {
 
 
     /**
+     * Get help content.
+     * 
+     * @param portalControllerContext portal controller context
+     * @return help content
+     * @throws PortletException
+     */
+    String getHelp(PortalControllerContext portalControllerContext) throws PortletException;
+
+
+    /**
      * Update task.
      * 
      * @param portalControllerContext portal controller context
-     * @param tasks tasks
      * @param task task
      * @param actionType action type
      * @throws PortletException
      */
-    void updateTask(PortalControllerContext portalControllerContext, Tasks tasks, Task task, TaskActionType actionType) throws PortletException;
+    void updateTask(PortalControllerContext portalControllerContext, Task task, TaskActionType actionType) throws PortletException;
 
 }

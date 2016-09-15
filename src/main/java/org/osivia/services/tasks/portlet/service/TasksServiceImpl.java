@@ -57,6 +57,10 @@ public class TasksServiceImpl implements TasksService {
         List<Task> tasks = this.repository.getTasks(portalControllerContext);
         container.setTasks(tasks);
 
+        // Help content
+        String help = this.repository.getHelp(portalControllerContext);
+        container.setHelp(help);
+
         return container;
     }
 
@@ -100,7 +104,7 @@ public class TasksServiceImpl implements TasksService {
     private void updateTask(PortalControllerContext portalControllerContext, Tasks tasks, int index, TaskActionType actionType) throws PortletException {
         // Task
         Task task = tasks.getTasks().get(index);
-        this.repository.updateTask(portalControllerContext, tasks, task, actionType);
+        this.repository.updateTask(portalControllerContext, task, actionType);
 
         // Reset tasks count
         try {
