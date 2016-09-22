@@ -15,6 +15,8 @@ import org.osivia.services.tasks.portlet.model.TaskActionType;
  */
 public interface TasksRepository {
 
+    /** Notification message property. */
+    String MESSAGE_PROPERTY = "tasksNotificationMessage";
     /** Help location property name. */
     String HELP_LOCATION_PROPERTY = "tasks.help.location";
 
@@ -45,8 +47,9 @@ public interface TasksRepository {
      * @param portalControllerContext portal controller context
      * @param task task
      * @param actionType action type
+     * @return task message
      * @throws PortletException
      */
-    void updateTask(PortalControllerContext portalControllerContext, Task task, TaskActionType actionType) throws PortletException;
+    String updateTask(PortalControllerContext portalControllerContext, Task task, TaskActionType actionType) throws PortletException;
 
 }

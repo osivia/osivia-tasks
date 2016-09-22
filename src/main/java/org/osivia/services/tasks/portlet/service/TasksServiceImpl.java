@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.portlet.PortletException;
 
+import org.apache.commons.lang.StringUtils;
 import org.osivia.portal.api.PortalException;
 import org.osivia.portal.api.context.PortalControllerContext;
 import org.osivia.portal.api.tasks.ITasksService;
@@ -57,6 +58,9 @@ public class TasksServiceImpl implements TasksService {
         List<Task> tasks = this.repository.getTasks(portalControllerContext);
         container.setTasks(tasks);
 
+        // Count
+        container.setCount(tasks.size());
+
         // Help content
         String help = this.repository.getHelp(portalControllerContext);
         container.setHelp(help);
@@ -104,7 +108,8 @@ public class TasksServiceImpl implements TasksService {
     private void updateTask(PortalControllerContext portalControllerContext, Tasks tasks, int index, TaskActionType actionType) throws PortletException {
         // Task
         Task task = tasks.getTasks().get(index);
-        this.repository.updateTask(portalControllerContext, task, actionType);
+
+        String message = this.repository.updateTask(portalControllerContext, task, actionType);
 
         // Reset tasks count
         try {
@@ -114,7 +119,12 @@ public class TasksServiceImpl implements TasksService {
         }
 
         // Update model
-        tasks.getTasks().remove(index);
+        if (StringUtils.isBlank(message)) {
+            tasks.getTasks().remove(index);
+        } else {
+            task.setMessage(message);
+        }
+        tasks.setCount(tasks.getCount() - 1);
     }
 
 }

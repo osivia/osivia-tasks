@@ -30,5 +30,21 @@
             <title>Tasks</title>
         </portlet-info>
     </portlet>
+    
+    
+    <portlet>
+        <portlet-name>osivia-services-tasks-plugin</portlet-name>
+        <portlet-class>org.osivia.services.tasks.plugin.TasksPlugin</portlet-class>
+        
+        <expiration-cache>180</expiration-cache>
+
+        <supports>
+            <mime-type>text/html</mime-type>
+        </supports>
+
+        <portlet-info>
+            <title>Tasks plugin</title>
+        </portlet-info>
+    </portlet>
 
 </portlet-app>

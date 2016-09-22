@@ -209,7 +209,7 @@ public class TasksRepositoryImpl implements TasksRepository {
      * {@inheritDoc}
      */
     @Override
-    public void updateTask(PortalControllerContext portalControllerContext, Task task, TaskActionType actionType) throws PortletException {
+    public String updateTask(PortalControllerContext portalControllerContext, Task task, TaskActionType actionType) throws PortletException {
         // Nuxeo controller
         NuxeoController nuxeoController = new NuxeoController(portalControllerContext);
 
@@ -235,13 +235,19 @@ public class TasksRepositoryImpl implements TasksRepository {
         // Action identifier
         String actionId = taskVariables.getString(actionType.getActionReference());
         
+        // Task message
+        String message;
+
         try {
-            this.formsService.proceed(portalControllerContext, document, actionId, null);
+            Map<String, String> updatedVariables = this.formsService.proceed(portalControllerContext, document, actionId, null);
+            message = updatedVariables.get(MESSAGE_PROPERTY);
         } catch (PortalException e) {
             throw new PortletException(e);
         } catch (FormFilterException e) {
             throw new PortletException(e);
         }
+
+        return message;
     }
 
 }

@@ -19,6 +19,8 @@ public class Tasks {
 
     /** Tasks. */
     private List<Task> tasks;
+    /** Count. */
+    private int count;
     /** Help content. */
     private String help;
 
@@ -47,6 +49,24 @@ public class Tasks {
      */
     public void setTasks(List<Task> tasks) {
         this.tasks = tasks;
+    }
+
+    /**
+     * Getter for count.
+     * 
+     * @return the count
+     */
+    public int getCount() {
+        return count;
+    }
+
+    /**
+     * Setter for count.
+     * 
+     * @param count the count to set
+     */
+    public void setCount(int count) {
+        this.count = count;
     }
 
     /**
