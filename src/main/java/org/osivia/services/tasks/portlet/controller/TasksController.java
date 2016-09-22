@@ -86,7 +86,7 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
             @RequestParam(name = "reload", required = false) String reload) {
         request.setAttribute("reload", BooleanUtils.toBoolean(reload));
 
-        request.setAttribute("tasksCount", tasks.getTasks().size());
+        request.setAttribute("tasksCount", tasks.getCount());
 
         return "view";
     }
