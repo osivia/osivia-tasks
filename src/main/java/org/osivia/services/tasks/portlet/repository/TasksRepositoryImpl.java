@@ -131,7 +131,6 @@ public class TasksRepositoryImpl implements TasksRepository {
         // Task variables
         PropertyMap taskVariables = task.getProperties().getMap("nt:task_variables");
 
-
         // Expression
         String expression = taskVariables.getString("stringMsg");
 
@@ -143,7 +142,8 @@ public class TasksRepositoryImpl implements TasksRepository {
         for (Entry<String, Object> entry : taskVariables.getMap().entrySet()) {
             variables.put(entry.getKey(), String.valueOf(entry.getValue()));
         }
-        variables.put("initiator", task.getString("nt:initiator"));
+        variables.put("procedureInitiator", instanceProperties.getString("pi:procedureInitiator"));
+        variables.put("taskInitiator", task.getString("nt:initiator"));
 
 
         // Tranformed expression
