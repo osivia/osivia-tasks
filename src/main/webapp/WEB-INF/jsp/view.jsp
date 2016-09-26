@@ -10,7 +10,7 @@
 <portlet:defineObjects />
 
 
-<div class="tasks" data-reload="${reload}" data-reload-url="${reloadUrl}" data-tasks-count="${tasksCount}">
+<div class="tasks" data-tasks-count="${tasksCount}">
     <!-- Help -->
     <c:if test="${not empty tasks.help}">
         <div class="clearfix">${tasks.help}</div>

@@ -11,7 +11,6 @@ import javax.portlet.PortletResponse;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.osivia.portal.api.context.PortalControllerContext;
 import org.osivia.services.tasks.portlet.model.Tasks;
@@ -28,7 +27,6 @@ import org.springframework.web.portlet.context.PortletConfigAware;
 import org.springframework.web.portlet.context.PortletContextAware;
 
 import fr.toutatice.portail.cms.nuxeo.api.CMSPortlet;
-import fr.toutatice.portail.cms.nuxeo.api.services.NuxeoConnectionProperties;
 
 /**
  * Tasks portlet controller.
@@ -78,14 +76,10 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
      * @param request render request
      * @param response render response
      * @param tasks tasks model attribute
-     * @param reload reload indicator request parameter
      * @return view path
      */
     @RenderMapping
-    public String view(RenderRequest request, RenderResponse response, @ModelAttribute("tasks") Tasks tasks,
-            @RequestParam(name = "reload", required = false) String reload) {
-        request.setAttribute("reload", BooleanUtils.toBoolean(reload));
-
+    public String view(RenderRequest request, RenderResponse response, @ModelAttribute("tasks") Tasks tasks) {
         request.setAttribute("tasksCount", tasks.getCount());
 
         return "view";
@@ -163,19 +157,6 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
         PortalControllerContext portalControllerContext = new PortalControllerContext(portletContext, request, response);
         
         return this.service.getTasks(portalControllerContext);
-    }
-
-
-    /**
-     * Get reload URL model attribute.
-     * 
-     * @param request portlet request
-     * @param response portlet response
-     * @return URL
-     */
-    @ModelAttribute("reloadUrl")
-    public String getReloadUrl(PortletRequest request, PortletResponse response) {
-        return NuxeoConnectionProperties.getPublicBaseUri() + "/logout";
     }
 
 
