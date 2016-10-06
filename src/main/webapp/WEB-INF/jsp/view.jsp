@@ -86,7 +86,7 @@
                     </c:when>
                     
                     <c:otherwise>
-                        <div><c:out value="${task.message}" escapeXml="false"></c:out></div>
+                        <p><c:out value="${task.message}" escapeXml="false"></c:out></p>
                     </c:otherwise>
                 </c:choose>
             </li>
