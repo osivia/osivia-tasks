@@ -75,7 +75,7 @@ public class TasksRepositoryImpl implements TasksRepository {
         List<Task> tasks;
         
         if (principal == null) {
-            tasks = new ArrayList<>(0);
+            tasks = new ArrayList<Task>(0);
         } else {
             // User name
             String user = principal.getName();
@@ -87,7 +87,7 @@ public class TasksRepositoryImpl implements TasksRepository {
             Documents documents = (Documents) nuxeoController.executeNuxeoCommand(command);
             
             // Tasks
-            tasks = new ArrayList<>(documents.size());
+            tasks = new ArrayList<Task>(documents.size());
             for (Document document : documents.list()) {
                 // Task variables
                 PropertyMap taskVariables = document.getProperties().getMap("nt:task_variables");
@@ -135,7 +135,7 @@ public class TasksRepositoryImpl implements TasksRepository {
         String expression = taskVariables.getString("stringMsg");
 
         // Variables
-        Map<String, String> variables = new HashMap<>(globalVariables.size() + taskVariables.size());
+        Map<String, String> variables = new HashMap<String, String>(globalVariables.size() + taskVariables.size());
         for (Entry<String, Object> entry : globalVariables.getMap().entrySet()) {
             variables.put(entry.getKey(), String.valueOf(entry.getValue()));
         }
