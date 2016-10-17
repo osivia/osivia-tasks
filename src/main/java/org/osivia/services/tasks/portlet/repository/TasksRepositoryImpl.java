@@ -2,10 +2,8 @@ package org.osivia.services.tasks.portlet.repository;
 
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.portlet.PortletException;
 
@@ -122,37 +120,22 @@ public class TasksRepositoryImpl implements TasksRepository {
      * @throws PortletException
      */
     private String getTaskDisplay(PortalControllerContext portalControllerContext, Document task) throws PortletException {
-        // Procedure instance properties
-        PropertyMap instanceProperties = task.getProperties().getMap("nt:pi");
-
-        // Global variables
-        PropertyMap globalVariables = instanceProperties.getMap("pi:globalVariablesValues");
-
         // Task variables
         PropertyMap taskVariables = task.getProperties().getMap("nt:task_variables");
 
         // Expression
         String expression = taskVariables.getString("stringMsg");
 
-        // Variables
-        Map<String, String> variables = new HashMap<>(globalVariables.size() + taskVariables.size());
-        for (Entry<String, Object> entry : globalVariables.getMap().entrySet()) {
-            variables.put(entry.getKey(), String.valueOf(entry.getValue()));
-        }
-        for (Entry<String, Object> entry : taskVariables.getMap().entrySet()) {
-            variables.put(entry.getKey(), String.valueOf(entry.getValue()));
-        }
-        variables.put("procedureInitiator", instanceProperties.getString("pi:procedureInitiator"));
-        variables.put("taskInitiator", task.getString("nt:initiator"));
-
-
         // Tranformed expression
         String transformedExpression;
         try {
-            transformedExpression = this.formsService.transform(portalControllerContext, expression, variables);
+            transformedExpression = this.formsService.transform(portalControllerContext, expression, task);
         } catch (PortalException e) {
             throw new PortletException(e);
         }
+
+        // Replace line separators
+        transformedExpression = StringUtils.replace(transformedExpression, System.lineSeparator(), "<br>");
 
         return transformedExpression;
     }
@@ -226,25 +209,29 @@ public class TasksRepositoryImpl implements TasksRepository {
         // Nuxeo documents
         Documents documents = (Documents) nuxeoController.executeNuxeoCommand(command);
 
-        // Task document
-        Document document = documents.get(0);
-
-        // Task variables
-        PropertyMap taskVariables = document.getProperties().getMap("nt:task_variables");
-
-        // Action identifier
-        String actionId = taskVariables.getString(actionType.getActionReference());
-        
         // Task message
         String message;
 
-        try {
-            Map<String, String> updatedVariables = this.formsService.proceed(portalControllerContext, document, actionId, null);
-            message = updatedVariables.get(MESSAGE_PROPERTY);
-        } catch (PortalException e) {
-            throw new PortletException(e);
-        } catch (FormFilterException e) {
-            throw new PortletException(e);
+        if (documents.size() == 1) {
+            // Task document
+            Document document = documents.get(0);
+
+            // Task variables
+            PropertyMap taskVariables = document.getProperties().getMap("nt:task_variables");
+
+            // Action identifier
+            String actionId = taskVariables.getString(actionType.getActionReference());
+
+            try {
+                Map<String, String> updatedVariables = this.formsService.proceed(portalControllerContext, document, actionId, null);
+                message = updatedVariables.get(MESSAGE_PROPERTY);
+            } catch (PortalException e) {
+                throw new PortletException(e);
+            } catch (FormFilterException e) {
+                throw new PortletException(e);
+            }
+        } else {
+            message = null;
         }
 
         return message;
