@@ -1,6 +1,5 @@
 package org.osivia.services.tasks.portlet.repository;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,24 +9,27 @@ import javax.portlet.PortletException;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.nuxeo.ecm.automation.client.model.Document;
-import org.nuxeo.ecm.automation.client.model.Documents;
 import org.nuxeo.ecm.automation.client.model.PropertyMap;
 import org.osivia.portal.api.PortalException;
+import org.osivia.portal.api.cms.EcmDocument;
 import org.osivia.portal.api.context.PortalControllerContext;
 import org.osivia.portal.api.directory.v2.model.Person;
 import org.osivia.portal.api.directory.v2.service.PersonService;
+import org.osivia.portal.api.internationalization.Bundle;
+import org.osivia.portal.api.internationalization.IBundleFactory;
+import org.osivia.portal.api.tasks.ITasksService;
 import org.osivia.services.tasks.portlet.model.Task;
 import org.osivia.services.tasks.portlet.model.TaskActionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
 
-import fr.toutatice.portail.cms.nuxeo.api.INuxeoCommand;
 import fr.toutatice.portail.cms.nuxeo.api.NuxeoController;
 import fr.toutatice.portail.cms.nuxeo.api.NuxeoException;
 import fr.toutatice.portail.cms.nuxeo.api.cms.NuxeoDocumentContext;
 import fr.toutatice.portail.cms.nuxeo.api.forms.FormFilterException;
 import fr.toutatice.portail.cms.nuxeo.api.forms.IFormsService;
+import fr.toutatice.portail.cms.nuxeo.api.services.TaskDirective;
 
 /**
  * Tasks repository implementation.
@@ -42,6 +44,10 @@ public class TasksRepositoryImpl implements TasksRepository {
     @Autowired
     private ApplicationContext applicationContext;
 
+    /** Tasks service. */
+    @Autowired
+    private ITasksService tasksService;
+
     /** Forms service. */
     @Autowired
     private IFormsService formsService;
@@ -49,6 +55,10 @@ public class TasksRepositoryImpl implements TasksRepository {
     /** Person service. */
     @Autowired
     private PersonService personService;
+
+    /** Internationalization bundle factory. */
+    @Autowired
+    private IBundleFactory bundleFactory;
 
 
     /**
@@ -64,49 +74,46 @@ public class TasksRepositoryImpl implements TasksRepository {
      */
     @Override
     public List<Task> getTasks(PortalControllerContext portalControllerContext) throws PortletException {
-        // Nuxeo controller
-        NuxeoController nuxeoController = new NuxeoController(portalControllerContext);
-
-        // Principal
-        Principal principal = portalControllerContext.getRequest().getUserPrincipal();
-        
-        // Tasks
-        List<Task> tasks;
-        
-        if (principal == null) {
-            tasks = new ArrayList<>(0);
-        } else {
-            // User name
-            String user = principal.getName();
-
-            // Nuxeo command
-            INuxeoCommand command = this.applicationContext.getBean(GetTasksCommand.class, user);
-
-            // Nuxeo documents
-            Documents documents = (Documents) nuxeoController.executeNuxeoCommand(command);
-            
-            // Tasks
-            tasks = new ArrayList<>(documents.size());
-            for (Document document : documents.list()) {
-                // Task variables
-                PropertyMap taskVariables = document.getProperties().getMap("nt:task_variables");
-
-                // Task initiator
-                Person initiator = this.personService.getPerson(document.getString("nt:initiator"));
-                
-                // Task
-                Task task = this.applicationContext.getBean(Task.class);
-                task.setDocument(document);
-                task.setDisplay(this.getTaskDisplay(portalControllerContext, document));
-                task.setInitiator(initiator);
-                task.setDate(document.getDate("dc:created"));
-                task.setAcknowledgeable(BooleanUtils.isTrue(taskVariables.getBoolean("acquitable")));
-                task.setCloseable(BooleanUtils.isTrue(taskVariables.getBoolean("closable")));
-
-                tasks.add(task);
-            }
+        // Task documents
+        List<EcmDocument> documents;
+        try {
+            documents = this.tasksService.getTasks(portalControllerContext);
+        } catch (PortalException e) {
+            throw new PortletException(e);
         }
 
+        // Tasks
+        List<Task> tasks = new ArrayList<>(documents.size());
+
+        for (EcmDocument ecmDocument : documents) {
+            if (ecmDocument instanceof Document) {
+                // Nuxeo document
+                Document document = (Document) ecmDocument;
+
+                // Task display
+                String display = this.getTaskDisplay(portalControllerContext, document);
+
+                if (StringUtils.isNotBlank(display)) {
+                    // Task variables
+                    PropertyMap taskVariables = document.getProperties().getMap("nt:task_variables");
+
+                    // Task initiator
+                    Person initiator = this.personService.getPerson(document.getString("nt:initiator"));
+
+                    // Task
+                    Task task = this.applicationContext.getBean(Task.class);
+                    task.setDocument(document);
+                    task.setDisplay(display);
+                    task.setInitiator(initiator);
+                    task.setDate(document.getDate("dc:created"));
+                    task.setAcknowledgeable(BooleanUtils.isTrue(taskVariables.getBoolean("acquitable")));
+                    task.setCloseable(BooleanUtils.isTrue(taskVariables.getBoolean("closable")));
+
+                    tasks.add(task);
+                }
+            }
+        }
+        
         return tasks;
     }
 
@@ -120,24 +127,50 @@ public class TasksRepositoryImpl implements TasksRepository {
      * @throws PortletException
      */
     private String getTaskDisplay(PortalControllerContext portalControllerContext, Document task) throws PortletException {
+        // Internationalization bundle
+        Bundle bundle = this.bundleFactory.getBundle(portalControllerContext.getRequest().getLocale());
+
         // Task variables
         PropertyMap taskVariables = task.getProperties().getMap("nt:task_variables");
+        // Task directive identifier
+        String directiveId = task.getString("nt:directive");
+
 
         // Expression
-        String expression = taskVariables.getString("stringMsg");
+        String expression = null;
 
-        // Tranformed expression
-        String transformedExpression;
-        try {
-            transformedExpression = this.formsService.transform(portalControllerContext, expression, task);
-        } catch (PortalException e) {
-            throw new PortletException(e);
+        if (BooleanUtils.isTrue(taskVariables.getBoolean("notifiable"))) {
+            expression = taskVariables.getString("stringMsg");
+        } else if (StringUtils.isNotEmpty(directiveId)) {
+            // Task directive
+            TaskDirective directive = TaskDirective.fromId(directiveId);
+
+            if (directive != null) {
+                String key = TASK_DIRECTIVE_KEY_PREFIX + StringUtils.upperCase(directive.toString());
+                expression = bundle.getString(key);
+            }
         }
 
-        // Replace line separators
-        transformedExpression = StringUtils.replace(transformedExpression, System.lineSeparator(), "<br>");
 
-        return transformedExpression;
+        // Task display
+        String display;
+
+        if (StringUtils.isNotBlank(expression)) {
+            // Tranformed expression
+            String transformedExpression;
+            try {
+                transformedExpression = this.formsService.transform(portalControllerContext, expression, task);
+            } catch (PortalException e) {
+                throw new PortletException(e);
+            }
+
+            // Replace line separators
+            display = StringUtils.replace(transformedExpression, System.lineSeparator(), "<br>");
+        } else {
+            display = null;
+        }
+
+        return display;
     }
 
 
@@ -193,28 +226,24 @@ public class TasksRepositoryImpl implements TasksRepository {
      */
     @Override
     public String updateTask(PortalControllerContext portalControllerContext, Task task, TaskActionType actionType) throws PortletException {
-        // Nuxeo controller
-        NuxeoController nuxeoController = new NuxeoController(portalControllerContext);
-
-        // Principal
-        Principal principal = portalControllerContext.getRequest().getUserPrincipal();
-
-        // User name
-        String user = principal.getName();
-
-        // Nuxeo command
+        // Task path
         String path = task.getDocument().getPath();
-        INuxeoCommand command = this.applicationContext.getBean(GetTasksCommand.class, user, path);
 
-        // Nuxeo documents
-        Documents documents = (Documents) nuxeoController.executeNuxeoCommand(command);
+        // Task ECM document
+        EcmDocument ecmDocument;
+        try {
+            ecmDocument = this.tasksService.getTask(portalControllerContext, path);
+        } catch (PortalException e) {
+            throw new PortletException(e);
+        }
+
 
         // Task message
         String message;
 
-        if (documents.size() == 1) {
+        if ((ecmDocument != null) && (ecmDocument instanceof Document)) {
             // Task document
-            Document document = documents.get(0);
+            Document document = (Document) ecmDocument;
 
             // Task variables
             PropertyMap taskVariables = document.getProperties().getMap("nt:task_variables");

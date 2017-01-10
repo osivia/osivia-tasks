@@ -19,6 +19,8 @@ public interface TasksRepository {
     String MESSAGE_PROPERTY = "tasksNotificationMessage";
     /** Help location property name. */
     String HELP_LOCATION_PROPERTY = "tasks.help.location";
+    /** Task directive internalization key prefix. */
+    String TASK_DIRECTIVE_KEY_PREFIX = "TASK_DIRECTIVE_";
 
 
     /**
