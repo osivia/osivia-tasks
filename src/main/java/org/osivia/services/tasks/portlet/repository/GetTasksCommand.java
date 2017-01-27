@@ -1,12 +1,16 @@
 package org.osivia.services.tasks.portlet.repository;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 import org.nuxeo.ecm.automation.client.Constants;
 import org.nuxeo.ecm.automation.client.OperationRequest;
 import org.nuxeo.ecm.automation.client.Session;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import fr.toutatice.portail.cms.nuxeo.api.INuxeoCommand;
 
@@ -16,6 +20,8 @@ import fr.toutatice.portail.cms.nuxeo.api.INuxeoCommand;
  * @author Cédric Krommenhoek
  * @see INuxeoCommand
  */
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class GetTasksCommand implements INuxeoCommand {
 
     /** Task actors. */
@@ -29,6 +35,23 @@ public class GetTasksCommand implements INuxeoCommand {
     /** Task UUID. */
     private final UUID uuid;
 
+
+    /**
+     * Constructor.
+     *
+     * @param actors task actors
+     * @param notifiable notifiable task indicator
+     */
+    public GetTasksCommand(String actor) {
+        super();
+        Set<String> actors = new HashSet<String>(1);
+        actors.add(actor);
+        this.actors = this.getStringValues(actors);
+        this.notifiable = null;
+        this.directives = null;
+        this.path = null;
+        this.uuid = null;
+    }
 
     /**
      * Constructor.
