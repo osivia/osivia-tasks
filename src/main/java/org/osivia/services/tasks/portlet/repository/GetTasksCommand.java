@@ -1,51 +1,106 @@
 package org.osivia.services.tasks.portlet.repository;
 
-import org.apache.commons.lang.StringUtils;
+import java.util.Collection;
+import java.util.Set;
+import java.util.UUID;
+
 import org.nuxeo.ecm.automation.client.Constants;
 import org.nuxeo.ecm.automation.client.OperationRequest;
 import org.nuxeo.ecm.automation.client.Session;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import fr.toutatice.portail.cms.nuxeo.api.INuxeoCommand;
 
 /**
- * Get tasks command.
+ * Get tasks Nuxeo command.
  *
  * @author Cédric Krommenhoek
  * @see INuxeoCommand
  */
-@Component
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class GetTasksCommand implements INuxeoCommand {
 
-    /** User UID. */
-    private final String user;
+    /** Task actors. */
+    private final String actors;
+    /** Notifiable task indicator. */
+    private final Boolean notifiable;
+    /** Task directives. */
+    private final String directives;
     /** Task path. */
     private final String path;
+    /** Task UUID. */
+    private final UUID uuid;
 
 
     /**
      * Constructor.
      *
-     * @param user user UID
+     * @param actors task actors
+     * @param notifiable notifiable task indicator
+     * @param directives task directives
      */
-    public GetTasksCommand(String user) {
-        this(user, null);
+    public GetTasksCommand(Set<String> actors, boolean notifiable, Set<String> directives) {
+        this(actors, notifiable, directives, null, null);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param actors task actors
+     * @param path task path
+     * @param uuid task UUID
+     */
+    public GetTasksCommand(Set<String> actors, String path, UUID uuid) {
+        this(actors, null, null, path, uuid);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param actors task actors
+     * @param notifiable notifiable task indicator
+     * @param path task path
+     * @param uuid task UUID
+     */
+    private GetTasksCommand(Set<String> actors, Boolean notifiable, Set<String> directives, String path, UUID uuid) {
+        super();
+        this.actors = this.getStringValues(actors);
+        this.notifiable = notifiable;
+        this.directives = this.getStringValues(directives);
+        this.path = path;
+        this.uuid = uuid;
     }
 
 
     /**
-     * Constructor.
+     * Get string values.
      *
-     * @param user user UID
-     * @param path task path
+     * @param values values
+     * @return string
      */
-    public GetTasksCommand(String user, String path) {
-        super();
-        this.user = user;
-        this.path = path;
+    private String getStringValues(Collection<String> values) {
+        String result;
+
+        if (values == null) {
+            result = null;
+        } else {
+            StringBuilder builder = new StringBuilder();
+
+            boolean first = true;
+            for (String value : values) {
+                if (first) {
+                    first = false;
+                } else {
+                    builder.append(", ");
+                }
+
+                builder.append("'");
+                builder.append(value);
+                builder.append("'");
+            }
+
+            result = builder.toString();
+        }
+
+        return result;
     }
 
 
@@ -59,10 +114,28 @@ public class GetTasksCommand implements INuxeoCommand {
         query.append("SELECT * FROM Document ");
         query.append("WHERE ecm:primaryType = 'TaskDoc' ");
         query.append("AND ecm:currentLifeCycleState = 'opened' ");
-        query.append("AND nt:task_variables.notifiable = 'true' ");
-        query.append("AND nt:actors = '").append(this.user).append("' ");
-        if (StringUtils.isNotEmpty(this.path)) {
+        if (this.actors != null) {
+            query.append("AND nt:actors/* IN (").append(this.actors).append(") ");
+        }
+        if ((this.notifiable != null) || (this.directives != null)) {
+            query.append("AND (");
+            if (this.notifiable != null) {
+                query.append("nt:task_variables.notifiable = '").append(this.notifiable).append("'");
+
+                if (this.directives != null) {
+                    query.append(" OR ");
+                }
+            }
+            if (this.directives != null) {
+                query.append("nt:directive IN (").append(this.directives).append(")");
+            }
+            query.append(") ");
+        }
+        if (this.path != null) {
             query.append("AND ecm:path = '").append(this.path).append("' ");
+        }
+        if (this.uuid != null) {
+            query.append("AND nt:pi.pi:globalVariablesValues.uuid = '").append(this.uuid).append("' ");
         }
 
         // Operation request
@@ -82,11 +155,15 @@ public class GetTasksCommand implements INuxeoCommand {
         StringBuilder builder = new StringBuilder();
         builder.append(this.getClass().getName());
         builder.append("/");
-        builder.append(this.user);
-        if (StringUtils.isNotEmpty(this.path)) {
-            builder.append("/");
-            builder.append(this.path);
-        }
+        builder.append(this.actors);
+        builder.append("/");
+        builder.append(this.notifiable);
+        builder.append("/");
+        builder.append(this.directives);
+        builder.append("/");
+        builder.append(this.path);
+        builder.append("/");
+        builder.append(this.uuid);
         return builder.toString();
     }
 

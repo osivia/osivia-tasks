@@ -32,7 +32,7 @@ import fr.toutatice.portail.cms.nuxeo.api.forms.IFormsService;
 
 /**
  * Tasks repository implementation.
- * 
+ *
  * @author Cédric Krommenhoek
  * @see TasksRepository
  */
@@ -70,10 +70,10 @@ public class TasksRepositoryImpl implements TasksRepository {
 
         // Principal
         Principal principal = portalControllerContext.getRequest().getUserPrincipal();
-        
+
         // Tasks
         List<Task> tasks;
-        
+
         if (principal == null) {
             tasks = new ArrayList<Task>(0);
         } else {
@@ -81,30 +81,39 @@ public class TasksRepositoryImpl implements TasksRepository {
             String user = principal.getName();
 
             // Nuxeo command
-            INuxeoCommand command = this.applicationContext.getBean(GetTasksCommand.class, user);
+            INuxeoCommand command = this.applicationContext.getBean(GetTasksCommand.class, user, true, null);
 
             // Nuxeo documents
             Documents documents = (Documents) nuxeoController.executeNuxeoCommand(command);
-            
+
+
             // Tasks
-            tasks = new ArrayList<Task>(documents.size());
-            for (Document document : documents.list()) {
-                // Task variables
-                PropertyMap taskVariables = document.getProperties().getMap("nt:task_variables");
+            tasks = new ArrayList<>(documents.size());
 
-                // Task initiator
-                Person initiator = this.personService.getPerson(document.getString("nt:initiator"));
-                
-                // Task
-                Task task = this.applicationContext.getBean(Task.class);
-                task.setDocument(document);
-                task.setDisplay(this.getTaskDisplay(portalControllerContext, document));
-                task.setInitiator(initiator);
-                task.setDate(document.getDate("dc:created"));
-                task.setAcknowledgeable(BooleanUtils.isTrue(taskVariables.getBoolean("acquitable")));
-                task.setCloseable(BooleanUtils.isTrue(taskVariables.getBoolean("closable")));
+            for (Document document : documents) {
+                if (document instanceof Document) {
+                    // Task display
+                    String display = this.getTaskDisplay(portalControllerContext, document);
 
-                tasks.add(task);
+                    if (StringUtils.isNotBlank(display)) {
+                        // Task variables
+                        PropertyMap taskVariables = document.getProperties().getMap("nt:task_variables");
+
+                        // Task initiator
+                        Person initiator = this.personService.getPerson(document.getString("nt:initiator"));
+
+                        // Task
+                        Task task = this.applicationContext.getBean(Task.class);
+                        task.setDocument(document);
+                        task.setDisplay(display);
+                        task.setInitiator(initiator);
+                        task.setDate(document.getDate("dc:created"));
+                        task.setAcknowledgeable(BooleanUtils.isTrue(taskVariables.getBoolean("acquitable")));
+                        task.setCloseable(BooleanUtils.isTrue(taskVariables.getBoolean("closable")));
+
+                        tasks.add(task);
+                    }
+                }
             }
         }
 
@@ -114,13 +123,14 @@ public class TasksRepositoryImpl implements TasksRepository {
 
     /**
      * Get task display.
-     * 
+     *
      * @param portalControllerContext portal controller context
      * @param task task Nuxeo document
      * @return task display
      * @throws PortletException
      */
     private String getTaskDisplay(PortalControllerContext portalControllerContext, Document task) throws PortletException {
+
         // Procedure instance properties
         PropertyMap instanceProperties = task.getProperties().getMap("nt:pi");
 
@@ -183,7 +193,7 @@ public class TasksRepositoryImpl implements TasksRepository {
             }
 
             try {
-                
+
                 // Document
                 Document document = nuxeoController.fetchDocument(path);
 
@@ -231,7 +241,7 @@ public class TasksRepositoryImpl implements TasksRepository {
 
         // Action identifier
         String actionId = taskVariables.getString(actionType.getActionReference());
-        
+
         // Task message
         String message;
 

@@ -32,7 +32,7 @@ import fr.toutatice.portail.cms.nuxeo.api.services.NuxeoConnectionProperties;
 
 /**
  * Tasks portlet controller.
- * 
+ *
  * @author Cédric Krommenhoek
  * @see CMSPortlet
  * @see PortletConfigAware
@@ -74,7 +74,7 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
 
     /**
      * View render mapping.
-     * 
+     *
      * @param request render request
      * @param response render response
      * @param tasks tasks model attribute
@@ -94,7 +94,7 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
 
     /**
      * Accept action mapping.
-     * 
+     *
      * @param request action request
      * @param response action response
      * @param tasks tasks model attribute
@@ -113,7 +113,7 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
 
     /**
      * Reject action mapping.
-     * 
+     *
      * @param request action request
      * @param response action response
      * @param tasks tasks model attribute
@@ -132,7 +132,7 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
 
     /**
      * Close action mapping.
-     * 
+     *
      * @param request action request
      * @param response action response
      * @param tasks tasks model attribute
@@ -151,7 +151,7 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
 
     /**
      * Get tasks model attribute.
-     * 
+     *
      * @param request portlet request
      * @param response portlet response
      * @return tasks
@@ -161,14 +161,14 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
     public Tasks getTasks(PortletRequest request, PortletResponse response) throws PortletException {
         // Portal controller context
         PortalControllerContext portalControllerContext = new PortalControllerContext(portletContext, request, response);
-        
+
         return this.service.getTasks(portalControllerContext);
     }
 
 
     /**
      * Get reload URL model attribute.
-     * 
+     *
      * @param request portlet request
      * @param response portlet response
      * @return URL

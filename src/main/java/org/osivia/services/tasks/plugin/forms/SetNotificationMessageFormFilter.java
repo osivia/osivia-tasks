@@ -71,7 +71,7 @@ public class SetNotificationMessageFormFilter implements FormFilter {
      */
     @Override
     public Map<String, FormFilterParameterType> getParameters() {
-        Map<String, FormFilterParameterType> parameters = new HashMap<String, FormFilterParameterType>(1);
+        Map<String, FormFilterParameterType> parameters = new HashMap<>(1);
         parameters.put(MESSAGE_PARAMETER, FormFilterParameterType.TEXT);
         return parameters;
     }
