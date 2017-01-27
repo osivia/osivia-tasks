@@ -227,10 +227,12 @@ public class TasksRepositoryImpl implements TasksRepository {
 
         // User name
         String user = principal.getName();
+        String actor = IFormsService.ACTOR_USER_PREFIX + user;
 
         // Nuxeo command
         String path = task.getDocument().getPath();
-        INuxeoCommand command = this.applicationContext.getBean(GetTasksCommand.class, user, path);
+
+        INuxeoCommand command = this.applicationContext.getBean(GetTasksCommand.class, actor, path);
 
         // Nuxeo documents
         Documents documents = (Documents) nuxeoController.executeNuxeoCommand(command);

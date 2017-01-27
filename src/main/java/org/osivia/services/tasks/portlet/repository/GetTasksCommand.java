@@ -39,8 +39,7 @@ public class GetTasksCommand implements INuxeoCommand {
     /**
      * Constructor.
      *
-     * @param actors task actors
-     * @param notifiable notifiable task indicator
+     * @param actor task actor
      */
     public GetTasksCommand(String actor) {
         super();
@@ -50,6 +49,21 @@ public class GetTasksCommand implements INuxeoCommand {
         this.notifiable = null;
         this.directives = null;
         this.path = null;
+        this.uuid = null;
+    }
+
+    /**
+     * @param actor task actor
+     * @param path task path
+     */
+    public GetTasksCommand(String actor, String path) {
+        super();
+        Set<String> actors = new HashSet<String>(1);
+        actors.add(actor);
+        this.actors = this.getStringValues(actors);
+        this.notifiable = null;
+        this.directives = null;
+        this.path = path;
         this.uuid = null;
     }
 
