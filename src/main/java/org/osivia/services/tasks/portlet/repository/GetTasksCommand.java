@@ -35,6 +35,26 @@ public class GetTasksCommand implements INuxeoCommand {
      *
      * @param actors task actors
      * @param notifiable notifiable task indicator
+     */
+    public GetTasksCommand(Set<String> actors) {
+        this(actors, true, null, null, null);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param actors task actors
+     * @param notifiable notifiable task indicator
+     */
+    public GetTasksCommand(Set<String> actors, boolean notifiable) {
+        this(actors, notifiable, null, null, null);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param actors task actors
+     * @param notifiable notifiable task indicator
      * @param directives task directives
      */
     public GetTasksCommand(Set<String> actors, boolean notifiable, Set<String> directives) {

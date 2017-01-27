@@ -81,7 +81,7 @@ public class TasksRepositoryImpl implements TasksRepository {
             String user = principal.getName();
 
             // Nuxeo command
-            INuxeoCommand command = this.applicationContext.getBean(GetTasksCommand.class, user, true, null);
+            INuxeoCommand command = this.applicationContext.getBean(GetTasksCommand.class, user);
 
             // Nuxeo documents
             Documents documents = (Documents) nuxeoController.executeNuxeoCommand(command);
