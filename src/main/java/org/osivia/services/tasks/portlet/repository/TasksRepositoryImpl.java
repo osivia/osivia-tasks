@@ -2,11 +2,15 @@ package org.osivia.services.tasks.portlet.repository;
 
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
+import javax.naming.Name;
 import javax.portlet.PortletException;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -80,10 +84,10 @@ public class TasksRepositoryImpl implements TasksRepository {
             // User name
             String user = principal.getName();
 
-            String actor = IFormsService.ACTOR_USER_PREFIX + user;
+            Set<String> actors = this.getTaskActors(user);
 
             // Nuxeo command
-            INuxeoCommand command = this.applicationContext.getBean(GetTasksCommand.class, actor);
+            INuxeoCommand command = this.applicationContext.getBean(GetTasksCommand.class, actors);
 
             // Nuxeo documents
             Documents documents = (Documents) nuxeoController.executeNuxeoCommand(command);
@@ -97,29 +101,72 @@ public class TasksRepositoryImpl implements TasksRepository {
                     // Task display
                     String display = this.getTaskDisplay(portalControllerContext, document);
 
-                    if (StringUtils.isNotBlank(display)) {
-                        // Task variables
-                        PropertyMap taskVariables = document.getProperties().getMap("nt:task_variables");
+                    // Task variables
+                    PropertyMap taskVariables = document.getProperties().getMap("nt:task_variables");
 
-                        // Task initiator
-                        Person initiator = this.personService.getPerson(document.getString("nt:initiator"));
+                    // Task initiator
+                    Person initiator = this.personService.getPerson(document.getString("nt:initiator"));
 
-                        // Task
-                        Task task = this.applicationContext.getBean(Task.class);
-                        task.setDocument(document);
-                        task.setDisplay(display);
-                        task.setInitiator(initiator);
-                        task.setDate(document.getDate("dc:created"));
-                        task.setAcknowledgeable(BooleanUtils.isTrue(taskVariables.getBoolean("acquitable")));
-                        task.setCloseable(BooleanUtils.isTrue(taskVariables.getBoolean("closable")));
+                    // Task
+                    Task task = this.applicationContext.getBean(Task.class);
+                    task.setDocument(document);
+                    task.setDisplay(display);
+                    task.setInitiator(initiator);
+                    task.setDate(document.getDate("dc:created"));
+                    task.setAcknowledgeable(BooleanUtils.isTrue(taskVariables.getBoolean("acquitable")));
+                    task.setCloseable(BooleanUtils.isTrue(taskVariables.getBoolean("closable")));
 
-                        tasks.add(task);
-                    }
+                    tasks.add(task);
                 }
             }
         }
 
         return tasks;
+    }
+
+    /**
+     * Get task actors.
+     *
+     * @param user user
+     * @return actors
+     */
+    private Set<String> getTaskActors(String user) {
+
+
+        Person userP = personService.getPerson(user);
+
+        List<Name> groups = userP.getProfiles();
+
+        // Actors
+        Set<String> actors = new HashSet<>((groups.size() + 1) * 2);
+
+        actors.add(user);
+        actors.add(IFormsService.ACTOR_USER_PREFIX + user);
+
+        for (Name group : groups) {
+            // Group CN
+            String cn = getCn(group);
+            if (cn != null) {
+                actors.add(cn);
+                actors.add(IFormsService.ACTOR_GROUP_PREFIX + cn);
+            }
+        }
+
+        return actors;
+    }
+
+
+    /**
+     * @param group
+     */
+    private String getCn(Name group) {
+        for (Enumeration<String> str = group.getAll(); group.getAll().hasMoreElements();) {
+            String string = str.nextElement();
+            if (StringUtils.startsWith(string, "cn=")) {
+                return StringUtils.split(string, '=')[1];
+            }
+        }
+        return null;
     }
 
 
