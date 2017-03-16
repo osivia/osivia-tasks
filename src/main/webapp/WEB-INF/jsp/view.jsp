@@ -10,6 +10,9 @@
 <portlet:defineObjects />
 
 
+<c:set var="namespace"><portlet:namespace /></c:set>
+
+
 <div class="tasks" data-tasks-count="${tasksCount}">
     <!-- Help -->
     <c:if test="${not empty tasks.help}">
@@ -28,7 +31,15 @@
                 
                 <c:choose>
                     <c:when test="${empty task.message}">
-                        <div class="clearfix">
+                        <div class="clearfix relative">
+                            <div id="shadowbox-${namespace}-${status.index}" class="ajax-shadowbox">
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped active" role="progressbar">
+                                        <span><op:translate key="AJAX_REFRESH" /></span>
+                                    </div>
+                                </div>
+                            </div>
+                        
                             <div class="media">
                                 <c:if test="${not empty task.initiator.avatar.url}">
                                     <div class="media-left">
@@ -57,7 +68,7 @@
                                         <portlet:param name="index" value="${status.index}" />
                                     </portlet:actionURL>
                                     
-                                    <a href="${url}" class="btn btn-link">
+                                    <a href="${url}" class="btn btn-link" data-ajax-shadowbox="#shadowbox-${namespace}-${status.index}">
                                         <span><op:translate key="TASK_ACCEPT" /></span>
                                     </a>
                                     
@@ -66,7 +77,7 @@
                                         <portlet:param name="index" value="${status.index}" />
                                     </portlet:actionURL>
                                     
-                                    <a href="${url}" class="btn btn-link">
+                                    <a href="${url}" class="btn btn-link" data-ajax-shadowbox="#shadowbox-${namespace}-${status.index}">
                                         <span><op:translate key="TASK_REJECT" /></span>
                                     </a>
                                 </c:if>
@@ -77,7 +88,7 @@
                                         <portlet:param name="index" value="${status.index}" />
                                     </portlet:actionURL>
                                     
-                                    <a href="${url}" class="btn btn-link">
+                                    <a href="${url}" class="btn btn-link" data-ajax-shadowbox="#shadowbox-${namespace}-${status.index}">
                                         <span><op:translate key="TASK_CLOSE" /></span>
                                     </a>
                                 </c:if>
