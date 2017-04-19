@@ -202,6 +202,8 @@ public class TasksRepositoryImpl implements TasksRepository {
             variables.put(entry.getKey(), String.valueOf(entry.getValue()));
         }
         variables.put("initiator", task.getString("nt:initiator"));
+        variables.put("taskUuid", task.getId());
+        variables.put("taskPath", task.getPath());
 
 
         // Tranformed expression
