@@ -204,7 +204,7 @@ public class TasksRepositoryImpl implements TasksRepository {
                 NuxeoDocumentContext documentContext = nuxeoController.getDocumentContext(path);
 
                 // Document
-                Document document = documentContext.getDoc();
+                Document document = documentContext.getDocument();
 
                 // Transformation
                 help = nuxeoController.transformHTMLContent(StringUtils.trimToEmpty(document.getString("note:note")));
