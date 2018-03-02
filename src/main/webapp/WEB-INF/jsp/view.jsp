@@ -32,14 +32,6 @@
                 <c:choose>
                     <c:when test="${empty task.message}">
                         <div class="clearfix relative">
-                            <div id="shadowbox-${namespace}-${status.index}" class="ajax-shadowbox">
-                                <div class="progress">
-                                    <div class="progress-bar progress-bar-striped active" role="progressbar">
-                                        <strong><op:translate key="AJAX_REFRESH" /></strong>
-                                    </div>
-                                </div>
-                            </div>
-                        
                             <div class="media">
                                 <c:if test="${not empty task.initiator.avatar.url}">
                                     <div class="media-left">
@@ -92,6 +84,14 @@
                                         <span><op:translate key="TASK_CLOSE" /></span>
                                     </a>
                                 </c:if>
+                            </div>
+                            
+                            <div id="shadowbox-${namespace}-${status.index}" class="ajax-shadowbox">
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped active" role="progressbar">
+                                        <strong><op:translate key="AJAX_REFRESH" /></strong>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </c:when>
