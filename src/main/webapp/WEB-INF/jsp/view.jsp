@@ -31,17 +31,15 @@
                 
                 <c:choose>
                     <c:when test="${empty task.message}">
-                        <div class="clearfix relative">
-                            <div class="media">
+                        <div class="clearfix position-relative">
+                            <div class="d-flex flex-align-center">
                                 <c:if test="${not empty task.initiator.avatar.url}">
-                                    <div class="media-left">
-                                        <div class="media-object">
-                                            <img src="${task.initiator.avatar.url}" alt="">
-                                        </div>
+                                    <div class="pr-3">
+                                        <img src="${task.initiator.avatar.url}" alt="" class="avatar">
                                     </div>
                                 </c:if>
                                 
-                                <div class="media-body media-middle">
+                                <div>
                                     <!-- Display -->
                                     <div>${task.display}</div>
                                     
@@ -53,14 +51,14 @@
                             </div>
                             
                             <!-- Actions -->
-                            <div class="btn-group btn-group-sm pull-right">
+                            <div class="pull-right">
                                 <c:if test="${task.acknowledgeable}">
                                     <!-- Accept -->
                                     <portlet:actionURL name="accept" var="url">
                                         <portlet:param name="index" value="${status.index}" />
                                     </portlet:actionURL>
                                     
-                                    <a href="${url}" class="btn btn-link" data-ajax-shadowbox="#shadowbox-${namespace}-${status.index}">
+                                    <a href="${url}" class="btn btn-link btn-sm" data-ajax-shadowbox="#shadowbox-${namespace}-${status.index}">
                                         <span><op:translate key="TASK_ACCEPT" /></span>
                                     </a>
                                     
@@ -69,7 +67,7 @@
                                         <portlet:param name="index" value="${status.index}" />
                                     </portlet:actionURL>
                                     
-                                    <a href="${url}" class="btn btn-link" data-ajax-shadowbox="#shadowbox-${namespace}-${status.index}">
+                                    <a href="${url}" class="btn btn-link btn-sm" data-ajax-shadowbox="#shadowbox-${namespace}-${status.index}">
                                         <span><op:translate key="TASK_REJECT" /></span>
                                     </a>
                                 </c:if>
@@ -80,17 +78,17 @@
                                         <portlet:param name="index" value="${status.index}" />
                                     </portlet:actionURL>
                                     
-                                    <a href="${url}" class="btn btn-link" data-ajax-shadowbox="#shadowbox-${namespace}-${status.index}">
+                                    <a href="${url}" class="btn btn-link btn-sm" data-ajax-shadowbox="#shadowbox-${namespace}-${status.index}">
                                         <span><op:translate key="TASK_CLOSE" /></span>
                                     </a>
                                 </c:if>
                             </div>
                             
                             <div id="shadowbox-${namespace}-${status.index}" class="ajax-shadowbox">
-                                <div class="progress">
-                                    <div class="progress-bar progress-bar-striped active" role="progressbar">
-                                        <strong><op:translate key="AJAX_REFRESH" /></strong>
-                                    </div>
+                                <div class="d-flex flex-grow-1 flex-align-center justify-content-center"> 
+                                <div class="spinner-border">
+                                    <span class="sr-only"><op:translate key="AJAX_REFRESH" /></span>
+                                </div>
                                 </div>
                             </div>
                         </div>
