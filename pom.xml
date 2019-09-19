@@ -138,6 +138,13 @@
         <developerConnection>scm:svn:http://www.osivia.org/repos/osivia-services/tasks/trunk</developerConnection>
     </scm>
 
+    <scm>
+        <url>https://github.com/osivia/osivia-tasks</url>
+        <connection>scm:git:ssh://git@github.com/osivia/osivia-tasks.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/osivia/osivia-tasks.git</developerConnection>
+    </scm>
+
+
 
     <distributionManagement>
         <repository>
