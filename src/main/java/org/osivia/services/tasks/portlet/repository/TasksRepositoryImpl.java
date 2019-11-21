@@ -1,6 +1,7 @@
 package org.osivia.services.tasks.portlet.repository;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +9,7 @@ import javax.portlet.PortletException;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.portal.theme.impl.render.dynamic.DynaRenderOptions;
 import org.nuxeo.ecm.automation.client.model.Document;
 import org.nuxeo.ecm.automation.client.model.PropertyMap;
 import org.osivia.portal.api.PortalException;
@@ -18,6 +20,8 @@ import org.osivia.portal.api.directory.v2.service.PersonService;
 import org.osivia.portal.api.internationalization.Bundle;
 import org.osivia.portal.api.internationalization.IBundleFactory;
 import org.osivia.portal.api.tasks.ITasksService;
+import org.osivia.portal.api.urls.IPortalUrlFactory;
+import org.osivia.portal.core.constants.InternalConstants;
 import org.osivia.services.tasks.portlet.model.Task;
 import org.osivia.services.tasks.portlet.model.TaskActionType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +64,11 @@ public class TasksRepositoryImpl implements TasksRepository {
     @Autowired
     private IBundleFactory bundleFactory;
 
-
+    /**
+     * Portal URL factory.
+     */
+    @Autowired
+    private IPortalUrlFactory portalUrlFactory;
     /**
      * Constructor.
      */
@@ -89,6 +97,8 @@ public class TasksRepositoryImpl implements TasksRepository {
             if (ecmDocument instanceof Document) {
                 // Nuxeo document
                 Document document = (Document) ecmDocument;
+                
+                if(document.getType().equals("TaskDoc"))    {
 
                 // Task display
                 String display = this.getTaskDisplay(portalControllerContext, document);
@@ -109,6 +119,39 @@ public class TasksRepositoryImpl implements TasksRepository {
                     task.setAcknowledgeable(BooleanUtils.isTrue(taskVariables.getBoolean("acquitable")));
                     task.setCloseable(BooleanUtils.isTrue(taskVariables.getBoolean("closable")));
 
+                    tasks.add(task);
+                }
+                }   else    {
+                    // Non task document
+                    Task task = this.applicationContext.getBean(Task.class);
+                    task.setDocument(document);
+                    
+                    Map<String, String> properties = new HashMap<>();
+                    
+                    // Internationalization bundle
+                    Bundle bundle = this.bundleFactory.getBundle(portalControllerContext.getRequest().getLocale());
+
+
+                    properties.put(InternalConstants.PROP_WINDOW_TITLE, bundle.getString("TASK_DISCUSSIONS_PAGE_TITLE"));
+                    properties.put("osivia.ajaxLink", "1");
+                    properties.put("osivia.hideTitle", "1");
+                    properties.put(DynaRenderOptions.PARTIAL_REFRESH_ENABLED, String.valueOf(true));
+                    Map<String, String> params = new HashMap<>();
+                    params.put("view", "detail");
+                    
+
+                    // URL
+                    String url;
+                    try {
+                     url = portalUrlFactory.getStartPortletInNewPage(portalControllerContext,
+                                "discussion", "Discussion", "index-cloud-ens-discussion-instance", properties, params);
+                    } catch (PortalException e) {
+                        url = "#";
+                    }
+                    
+                    task.setDisplay("<a href=\""+url+"\">"+ document.getTitle() +"</a");
+                    
+                    task.setDate(document.getDate("dc:modified"));
                     tasks.add(task);
                 }
             }
