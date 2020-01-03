@@ -12,6 +12,8 @@ import org.apache.commons.lang.StringUtils;
 import org.jboss.portal.theme.impl.render.dynamic.DynaRenderOptions;
 import org.nuxeo.ecm.automation.client.model.Document;
 import org.nuxeo.ecm.automation.client.model.PropertyMap;
+import org.osivia.directory.v2.model.preferences.UserPreferences;
+import org.osivia.directory.v2.service.preferences.UserPreferencesService;
 import org.osivia.portal.api.PortalException;
 import org.osivia.portal.api.cms.EcmDocument;
 import org.osivia.portal.api.context.PortalControllerContext;
@@ -63,6 +65,9 @@ public class TasksRepositoryImpl implements TasksRepository {
     /** Internationalization bundle factory. */
     @Autowired
     private IBundleFactory bundleFactory;
+    
+    @Autowired
+    private UserPreferencesService userPreferencesService;
 
     /**
      * Portal URL factory.
@@ -97,62 +102,91 @@ public class TasksRepositoryImpl implements TasksRepository {
             if (ecmDocument instanceof Document) {
                 // Nuxeo document
                 Document document = (Document) ecmDocument;
-                
-                if(document.getType().equals("TaskDoc"))    {
 
-                // Task display
-                String display = this.getTaskDisplay(portalControllerContext, document);
+                if (document.getType().equals("TaskDoc")) {
 
-                if (StringUtils.isNotBlank(display)) {
-                    // Task variables
-                    PropertyMap taskVariables = document.getProperties().getMap("nt:task_variables");
+                    // Task display
+                    String display = this.getTaskDisplay(portalControllerContext, document);
 
-                    // Task initiator
-                    Person initiator = this.personService.getPerson(document.getString("nt:initiator"));
+                    if (StringUtils.isNotBlank(display)) {
+                        // Task variables
+                        PropertyMap taskVariables = document.getProperties().getMap("nt:task_variables");
 
-                    // Task
-                    Task task = this.applicationContext.getBean(Task.class);
-                    task.setDocument(document);
-                    task.setDisplay(display);
-                    task.setInitiator(initiator);
-                    task.setDate(document.getDate("dc:created"));
-                    task.setAcknowledgeable(BooleanUtils.isTrue(taskVariables.getBoolean("acquitable")));
-                    task.setCloseable(BooleanUtils.isTrue(taskVariables.getBoolean("closable")));
+                        // Task initiator
+                        Person initiator = this.personService.getPerson(document.getString("nt:initiator"));
 
-                    tasks.add(task);
-                }
-                }   else    {
+                        // Task
+                        Task task = this.applicationContext.getBean(Task.class);
+                        task.setDocument(document);
+                        task.setDisplay(display);
+                        task.setInitiator(initiator);
+                        task.setDate(document.getDate("dc:created"));
+                        task.setAcknowledgeable(BooleanUtils.isTrue(taskVariables.getBoolean("acquitable")));
+                        task.setCloseable(BooleanUtils.isTrue(taskVariables.getBoolean("closable")));
+
+                        tasks.add(task);
+                    }
+                } else {
                     // Non task document
                     Task task = this.applicationContext.getBean(Task.class);
                     task.setDocument(document);
-                    
-                    Map<String, String> properties = new HashMap<>();
-                    
-                    // Internationalization bundle
-                    Bundle bundle = this.bundleFactory.getBundle(portalControllerContext.getRequest().getLocale());
 
-
-                    properties.put(InternalConstants.PROP_WINDOW_TITLE, bundle.getString("TASK_DISCUSSIONS_PAGE_TITLE"));
-                    properties.put("osivia.ajaxLink", "1");
-                    properties.put("osivia.hideTitle", "1");
-                    properties.put(DynaRenderOptions.PARTIAL_REFRESH_ENABLED, String.valueOf(true));
-                    Map<String, String> params = new HashMap<>();
-                    params.put("view", "detail");
-                    
-
-                    // URL
-                    String url;
                     try {
-                     url = portalUrlFactory.getStartPortletInNewPage(portalControllerContext,
-                                "discussion", "Discussion", "index-cloud-ens-discussion-instance", properties, params);
-                    } catch (PortalException e) {
-                        url = "#";
+
+                        boolean mustBeNotified = false;
+                        
+                        
+                        // Check if user has already read the message
+                        
+                        int nbMessages = document.getProperties().getList("disc:messages").size();
+                        if (nbMessages > 0) {
+                            UserPreferences userPreferences = userPreferencesService.getUserPreferences(portalControllerContext);
+                            Map<String, String> userProperties = userPreferences.getUserProperties();
+
+                            String propName = "discussion." + document.getProperties().getString("ttc:webid") + ".lastReadMessage.id";
+                            String readId = userProperties.get(propName);
+
+                            if (readId == null || Integer.parseInt(readId) < nbMessages - 1) {
+                                mustBeNotified = true;
+                            }
+
+                        }
+
+                        if( mustBeNotified) {
+
+                            Map<String, String> properties = new HashMap<>();
+
+                            // Internationalization bundle
+                            Bundle bundle = this.bundleFactory.getBundle(portalControllerContext.getRequest().getLocale());
+
+
+                            properties.put(InternalConstants.PROP_WINDOW_TITLE, bundle.getString("TASK_DISCUSSIONS_PAGE_TITLE"));
+                            properties.put("osivia.ajaxLink", "1");
+                            properties.put("osivia.hideTitle", "1");
+                            properties.put(DynaRenderOptions.PARTIAL_REFRESH_ENABLED, String.valueOf(true));
+                            Map<String, String> params = new HashMap<>();
+                            params.put("view", "detail");
+                            params.put("id", document.getProperties().getString("ttc:webid"));
+                            params.put("anchor", "newMessage");
+
+
+                            // URL
+                            String url;
+                            try {
+                                url = portalUrlFactory.getStartPortletInNewPage(portalControllerContext, "discussion", "Discussion",
+                                        "index-cloud-ens-discussion-instance", properties, params);
+                            } catch (PortalException e) {
+                                url = "#";
+                            }
+
+                            task.setDisplay("<a href=\"" + url + "\">" + document.getTitle() + "</a");
+
+                            task.setDate(document.getDate("dc:modified"));
+                            tasks.add(task);
+                        }
+                    } catch (Exception e) {
+                        throw new PortletException(e);
                     }
-                    
-                    task.setDisplay("<a href=\""+url+"\">"+ document.getTitle() +"</a");
-                    
-                    task.setDate(document.getDate("dc:modified"));
-                    tasks.add(task);
                 }
             }
         }

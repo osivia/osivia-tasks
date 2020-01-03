@@ -1,5 +1,6 @@
 package org.osivia.services.tasks.configuration;
 
+import org.osivia.directory.v2.service.preferences.UserPreferencesService;
 import org.osivia.portal.api.directory.v2.DirServiceFactory;
 import org.osivia.portal.api.directory.v2.service.PersonService;
 import org.osivia.portal.api.internationalization.IBundleFactory;
@@ -129,6 +130,17 @@ public class TasksConfiguration {
     @Bean
     public IPortalUrlFactory getPortalUrlFactory() {
         return Locator.findMBean(IPortalUrlFactory.class, IPortalUrlFactory.MBEAN_NAME);
+    }
+
+    
+    /**
+     * Get user preferences service.
+     *
+     * @return user preferences service
+     */
+    @Bean
+    public UserPreferencesService getUserPreferencesService() {
+        return DirServiceFactory.getService(UserPreferencesService.class);
     }
 
     
