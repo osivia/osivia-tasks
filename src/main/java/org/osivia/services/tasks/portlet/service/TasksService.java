@@ -54,4 +54,14 @@ public interface TasksService {
      */
     void closeTask(PortalControllerContext portalControllerContext, Tasks tasks, int index) throws PortletException;
 
+
+    /**
+     * Gets the discussions url.
+     *
+     * @param portalControllerContext the portal controller context
+     * @return the discussions url
+     * @throws PortletException the portlet exception
+     */
+    String getDiscussionsUrl(PortalControllerContext portalControllerContext) ;
+
 }

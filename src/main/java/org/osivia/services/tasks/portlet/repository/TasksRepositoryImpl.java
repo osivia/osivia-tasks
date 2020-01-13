@@ -6,21 +6,25 @@ import java.util.List;
 import java.util.Map;
 
 import javax.portlet.PortletException;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.portal.theme.impl.render.dynamic.DynaRenderOptions;
 import org.nuxeo.ecm.automation.client.model.Document;
+import org.nuxeo.ecm.automation.client.model.PropertyList;
 import org.nuxeo.ecm.automation.client.model.PropertyMap;
 import org.osivia.directory.v2.model.preferences.UserPreferences;
 import org.osivia.directory.v2.service.preferences.UserPreferencesService;
 import org.osivia.portal.api.PortalException;
 import org.osivia.portal.api.cms.EcmDocument;
 import org.osivia.portal.api.context.PortalControllerContext;
+import org.osivia.portal.api.directory.v2.DirServiceFactory;
 import org.osivia.portal.api.directory.v2.model.Person;
 import org.osivia.portal.api.directory.v2.service.PersonService;
 import org.osivia.portal.api.internationalization.Bundle;
 import org.osivia.portal.api.internationalization.IBundleFactory;
+import org.osivia.portal.api.tasks.CustomTask;
 import org.osivia.portal.api.tasks.ITasksService;
 import org.osivia.portal.api.urls.IPortalUrlFactory;
 import org.osivia.portal.core.constants.InternalConstants;
@@ -33,6 +37,7 @@ import org.springframework.stereotype.Repository;
 import fr.toutatice.portail.cms.nuxeo.api.NuxeoController;
 import fr.toutatice.portail.cms.nuxeo.api.NuxeoException;
 import fr.toutatice.portail.cms.nuxeo.api.cms.NuxeoDocumentContext;
+import fr.toutatice.portail.cms.nuxeo.api.discussions.DiscussionHelper;
 import fr.toutatice.portail.cms.nuxeo.api.forms.FormFilterException;
 import fr.toutatice.portail.cms.nuxeo.api.forms.IFormsService;
 import fr.toutatice.portail.cms.nuxeo.api.services.TaskDirective;
@@ -65,7 +70,7 @@ public class TasksRepositoryImpl implements TasksRepository {
     /** Internationalization bundle factory. */
     @Autowired
     private IBundleFactory bundleFactory;
-    
+
     @Autowired
     private UserPreferencesService userPreferencesService;
 
@@ -74,6 +79,7 @@ public class TasksRepositoryImpl implements TasksRepository {
      */
     @Autowired
     private IPortalUrlFactory portalUrlFactory;
+
     /**
      * Constructor.
      */
@@ -89,6 +95,8 @@ public class TasksRepositoryImpl implements TasksRepository {
     public List<Task> getTasks(PortalControllerContext portalControllerContext) throws PortletException {
         // Task documents
         List<EcmDocument> documents;
+
+
         try {
             documents = this.tasksService.getTasks(portalControllerContext);
         } catch (PortalException e) {
@@ -126,72 +134,52 @@ public class TasksRepositoryImpl implements TasksRepository {
 
                         tasks.add(task);
                     }
-                } else {
-                    // Non task document
-                    Task task = this.applicationContext.getBean(Task.class);
-                    task.setDocument(document);
+                }
+            }
 
-                    try {
-
-                        boolean mustBeNotified = false;
-                        
-                        
-                        // Check if user has already read the message
-                        
-                        int nbMessages = document.getProperties().getList("disc:messages").size();
-                        if (nbMessages > 0) {
-                            UserPreferences userPreferences = userPreferencesService.getUserPreferences(portalControllerContext);
-                            Map<String, String> userProperties = userPreferences.getUserProperties();
-
-                            String propName = "discussion." + document.getProperties().getString("ttc:webid") + ".lastReadMessage.id";
-                            String readId = userProperties.get(propName);
-
-                            if (readId == null || Integer.parseInt(readId) < nbMessages - 1) {
-                                mustBeNotified = true;
-                            }
-
-                        }
-
-                        if( mustBeNotified) {
-
-                            Map<String, String> properties = new HashMap<>();
-
-                            // Internationalization bundle
-                            Bundle bundle = this.bundleFactory.getBundle(portalControllerContext.getRequest().getLocale());
+            if (ecmDocument instanceof CustomTask) {
+                // Nuxeo document
+                CustomTask customTask = (CustomTask) ecmDocument;
+                Document document = (Document) customTask.getInnerDocument();
 
 
-                            properties.put(InternalConstants.PROP_WINDOW_TITLE, bundle.getString("TASK_DISCUSSIONS_PAGE_TITLE"));
-                            properties.put("osivia.ajaxLink", "1");
-                            properties.put("osivia.hideTitle", "1");
-                            properties.put(DynaRenderOptions.PARTIAL_REFRESH_ENABLED, String.valueOf(true));
-                            Map<String, String> params = new HashMap<>();
-                            params.put("view", "detail");
-                            params.put("id", document.getProperties().getString("ttc:webid"));
-                            params.put("anchor", "newMessage");
+                // Non task document
+                Task task = this.applicationContext.getBean(Task.class);
+                task.setDocument(document);
+
+                try {
 
 
-                            // URL
-                            String url;
-                            try {
-                                url = portalUrlFactory.getStartPortletInNewPage(portalControllerContext, "discussion", "Discussion",
-                                        "index-cloud-ens-discussion-instance", properties, params);
-                            } catch (PortalException e) {
-                                url = "#";
-                            }
+                    // Internationalization bundle
+                    Bundle bundle = this.bundleFactory.getBundle(portalControllerContext.getRequest().getLocale());
+                     
+                    if (customTask.getProperties().get("author") != null) {
 
-                            task.setDisplay("<a href=\"" + url + "\">" + document.getTitle() + "</a");
+                        // Directory person
+                        Person person = personService.getPerson(customTask.getProperties().get("author"));
+
+                        if (person != null) {
+                            String displayName = StringUtils.defaultIfBlank(person.getDisplayName(), customTask.getProperties().get("author"));
+                            String url = DiscussionHelper.getDiscussionUrlById(portalControllerContext, document.getProperties().getString("ttc:webid"));
+                            
+
+                            task.setDisplay("<a href=\"" + url + "\">" + bundle.getString("TASK_DISCUSSIONS_NEW_MESSAGE_FROM", displayName) + "</a");
 
                             task.setDate(document.getDate("dc:modified"));
                             tasks.add(task);
                         }
-                    } catch (Exception e) {
-                        throw new PortletException(e);
                     }
+
+
+                } catch (Exception e) {
+                    throw new PortletException(e);
                 }
             }
         }
-        
+
+
         return tasks;
+
     }
 
 

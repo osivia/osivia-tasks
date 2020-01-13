@@ -14,6 +14,15 @@
 
 
 <div class="tasks" data-tasks-count="${tasksCount}">
+
+    <c:if test="${not empty discussionUrl}">
+        <div class="clearfix">
+            <a href="${discussionUrl}" class="badge badge-secondary no-ajax-link float-right"  >
+                <span><op:translate key="TASK_ACCESS_TO_DISCUSSIONS" /></span>
+            </a>
+        </div>
+    </c:if>   
+     
     <!-- Help -->
     <c:if test="${not empty tasks.help}">
         <div class="clearfix">${tasks.help}</div>
@@ -107,4 +116,6 @@
             </li>
         </c:if>
     </ul>
+     
+
 </div>

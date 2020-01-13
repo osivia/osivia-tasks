@@ -81,6 +81,11 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
     @RenderMapping
     public String view(RenderRequest request, RenderResponse response, @ModelAttribute("tasks") Tasks tasks) {
         request.setAttribute("tasksCount", tasks.getCount());
+        
+        // Portal controller context
+        PortalControllerContext portalControllerContext = new PortalControllerContext(portletContext, request, response);
+        request.setAttribute("discussionUrl", this.service.getDiscussionsUrl(portalControllerContext));
+
 
         return "view";
     }

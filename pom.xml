@@ -11,9 +11,8 @@
 
 
     <properties>
-        <toutatice.version>4.9</toutatice.version>
+        <toutatice.version>4.9-SNAPSHOT</toutatice.version>
         <directory.version>4.9-SNAPSHOT</directory.version>
-        
     </properties>
 
 

@@ -1,13 +1,17 @@
 package org.osivia.services.tasks.portlet.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.portlet.PortletException;
 
 import org.apache.commons.lang.StringUtils;
+import org.jboss.portal.theme.impl.render.dynamic.DynaRenderOptions;
 import org.osivia.portal.api.PortalException;
 import org.osivia.portal.api.context.PortalControllerContext;
 import org.osivia.portal.api.tasks.ITasksService;
+import org.osivia.portal.api.urls.IPortalUrlFactory;
 import org.osivia.services.tasks.portlet.model.Task;
 import org.osivia.services.tasks.portlet.model.TaskActionType;
 import org.osivia.services.tasks.portlet.model.Tasks;
@@ -36,6 +40,12 @@ public class TasksServiceImpl implements TasksService {
     /** Tasks service. */
     @Autowired
     private ITasksService tasksService;
+    
+    /**
+     * Portal URL factory.
+     */
+    @Autowired
+    private IPortalUrlFactory portalUrlFactory;
 
 
     /**
@@ -126,5 +136,33 @@ public class TasksServiceImpl implements TasksService {
         }
         tasks.setCount(tasks.getCount() - 1);
     }
+    
+    
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getDiscussionsUrl(PortalControllerContext portalControllerContext) {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put("osivia.ajaxLink", "1");
+        properties.put("osivia.hideTitle", "1");
+        properties.put(DynaRenderOptions.PARTIAL_REFRESH_ENABLED, String.valueOf(true));
+        Map<String, String> params = new HashMap<>();
+
+        // URL
+        String url;
+        try {
+            url = portalUrlFactory.getStartPortletInNewPage(portalControllerContext, "discussion", "Discussion",
+                    "index-cloud-ens-discussion-instance", properties, params);
+        } catch (PortalException e) {
+            url = null;
+        }
+        
+        return url;
+
+    }
+
 
 }
