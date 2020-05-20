@@ -12,7 +12,9 @@ import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
 import org.apache.commons.lang.math.NumberUtils;
+import org.osivia.portal.api.PortalException;
 import org.osivia.portal.api.context.PortalControllerContext;
+import org.osivia.portal.api.tasks.ITasksService;
 import org.osivia.services.tasks.portlet.model.Tasks;
 import org.osivia.services.tasks.portlet.service.TasksService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +51,11 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
     /** Tasks service. */
     @Autowired
     private TasksService service;
+    
+    
+    /** Tasks service. */
+    @Autowired
+    private ITasksService tasksService;
 
 
     /**
@@ -79,13 +86,21 @@ public class TasksController extends CMSPortlet implements PortletConfigAware, P
      * @return view path
      */
     @RenderMapping
-    public String view(RenderRequest request, RenderResponse response, @ModelAttribute("tasks") Tasks tasks) {
+    public String view(RenderRequest request, RenderResponse response, @ModelAttribute("tasks") Tasks tasks) throws PortletException {
         request.setAttribute("tasksCount", tasks.getCount());
         
+         
         // Portal controller context
         PortalControllerContext portalControllerContext = new PortalControllerContext(portletContext, request, response);
         request.setAttribute("discussionUrl", this.service.getDiscussionsUrl(portalControllerContext));
 
+        // This view update notification state (ajax request in tasks.js)
+        // We must be sure to update portal cache
+        try {
+            tasksService.resetTasksCount(portalControllerContext);
+        } catch (PortalException e) {
+            throw new PortletException(e);
+        }
 
         return "view";
     }
