@@ -152,25 +152,28 @@ public class TasksRepositoryImpl implements TasksRepository {
 
                     // Internationalization bundle
                     Bundle bundle = this.bundleFactory.getBundle(portalControllerContext.getRequest().getLocale());
-                     
-                    if (customTask.getProperties().get("author") != null) {
 
-                        // Directory person
+                    String subject;
+
+                    if (customTask.getProperties().get("pubTitle") != null) {
+                        subject = customTask.getProperties().get("pubTitle");
+                    } else if (customTask.getProperties().get("author") != null) {
                         Person person = personService.getPerson(customTask.getProperties().get("author"));
-
                         if (person != null) {
-                            String displayName = StringUtils.defaultIfBlank(person.getDisplayName(), customTask.getProperties().get("author"));
-                            String url = DiscussionHelper.getDiscussionUrlById(portalControllerContext, document.getProperties().getString("ttc:webid"));
-                            
-
-                            task.setDisplay("<a href=\"" + url + "\">" + bundle.getString("TASK_DISCUSSIONS_NEW_MESSAGE_FROM", displayName) + "</a");
-
-                            task.setDate(document.getDate("dc:modified"));
-                            tasks.add(task);
+                            subject = StringUtils.defaultIfBlank(person.getDisplayName(), "");
                         }
-                    }
+                        subject = customTask.getProperties().get("author");
+                    } else
+                        subject = "";
+
+                    if (subject.length() > 0)
+                        subject = "(" + subject + ")";
 
 
+                    String url = DiscussionHelper.getDiscussionUrlById(portalControllerContext, document.getProperties().getString("ttc:webid"));
+                    task.setDisplay(" <a href=\"" + url + "\">" + bundle.getString("TASK_DISCUSSIONS_NEW_MESSAGE") + "</a> "+ subject);
+
+                    tasks.add(task);
                 } catch (Exception e) {
                     throw new PortletException(e);
                 }
