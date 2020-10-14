@@ -153,18 +153,7 @@ public class TasksRepositoryImpl implements TasksRepository {
                     // Internationalization bundle
                     Bundle bundle = this.bundleFactory.getBundle(portalControllerContext.getRequest().getLocale());
 
-                    String subject;
-
-                    if (customTask.getProperties().get("pubTitle") != null) {
-                        subject = customTask.getProperties().get("pubTitle");
-                    } else if (customTask.getProperties().get("author") != null) {
-                        Person person = personService.getPerson(customTask.getProperties().get("author"));
-                        if (person != null) {
-                            subject = StringUtils.defaultIfBlank(person.getDisplayName(), "");
-                        }
-                        subject = customTask.getProperties().get("author");
-                    } else
-                        subject = "";
+                    String subject = customTask.getProperties().get("discussionTitle");
 
                     if (subject.length() > 0)
                         subject = "(" + subject + ")";

@@ -16,7 +16,7 @@
 <div class="tasks" data-tasks-count="${tasksCount}">
 
     <c:if test="${not empty discussionUrl}">
-        <div class="clearfix">
+        <div class="clearfix mb-3">
             <a href="${discussionUrl}" class="badge badge-secondary no-ajax-link float-right"  >
                 <span><op:translate key="TASK_ACCESS_TO_DISCUSSIONS" /></span>
             </a>
