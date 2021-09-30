@@ -266,11 +266,7 @@ public class TasksRepositoryImpl implements TasksRepository {
                 // Transformation
                 help = nuxeoController.transformHTMLContent(StringUtils.trimToEmpty(document.getString("note:note")));
             } catch (NuxeoException e) {
-                if (e.getErrorCode() == NuxeoException.ERROR_NOTFOUND) {
-                    help = null;
-                } else {
-                    throw e;
-                }
+               help = null;
             }
         }
 

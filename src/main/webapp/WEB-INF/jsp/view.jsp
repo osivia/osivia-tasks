@@ -17,7 +17,7 @@
 
     <c:if test="${not empty discussionUrl}">
         <div class="clearfix mb-3">
-            <a href="${discussionUrl}" class="badge badge-secondary no-ajax-link float-right"  >
+            <a href="${discussionUrl}" class="badge badge-secondary float-right"  >
                 <span><op:translate key="TASK_ACCESS_TO_DISCUSSIONS" /></span>
             </a>
         </div>
